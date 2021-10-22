@@ -7,6 +7,7 @@ using MyJetWallet.Sdk.ServiceBus;
 using Service.ChangeBalanceGateway.Grpc;
 using Service.ClientWallets.Grpc;
 using Service.ClientWallets.Grpc.Models;
+using Service.FeeShareEngine.Domain.Models;
 using Service.FeeShareEngine.Domain.Models.Models;
 using Service.IndexPrices.Client;
 using Service.Liquidity.Converter.Domain.Models;
@@ -30,16 +31,16 @@ namespace Service.FeeShareEngine.Writer.Services
             _walletService = walletService;
         }
 
-        public (decimal feeInUsd, decimal feeShare) CalculateFeeShare(SwapMessage swap)
+        public (decimal feeShare, decimal feeShareInUsd) CalculateFeeShare(SwapMessage swap)
         {
             var conversionRate = _convertPricesClient.GetConvertIndexPriceByPairAsync(swap.DifferenceAsset, "USD");
             var sharePercent = Program.ReloadedSettings(t => t.FeeSharePercent).Invoke();
-            var feeInUsd = conversionRate.Price * swap.DifferenceVolumeAbs;
-            var feeShare = feeInUsd * (sharePercent / 100);
-            return (feeInUsd, feeShare);
+            var feeShare = swap.DifferenceVolumeAbs * (sharePercent / 100);
+            var feeShareInUsd = conversionRate.Price * feeShare;
+            return (feeShare, feeShareInUsd);
         }
         
-        public async Task<bool> TransferToServiceWallet(FeeShareEntity share)
+        public async Task TransferToServiceWallet(FeeShareEntity share)
         {
             var converterSettings = _liquidityConverterSettings.GetLiquidityConverterSettingsAsync().Settings.First();
             var result = await _changeBalanceService.TransferFeeShareToServiceWalletAsync(new()
@@ -55,10 +56,19 @@ namespace Service.FeeShareEngine.Writer.Services
                 RequestSource = "FeeShareEngine"
             });
 
-            if (!result.Result)
-                return false;
+            share.FeeShareWalletId = Program.Settings.ServiceWalletId;
+            share.ConverterWalletId = converterSettings.BrokerWalletId;
+            share.BrokerId = converterSettings.BrokerId;
 
-            return true;
+            if (result.Result)
+            {
+                share.Status = PaymentStatus.Paid;
+                share.PaymentTimestamp = DateTime.UtcNow;
+            }
+            else
+            {
+                share.Status = PaymentStatus.FailedToPay;
+            }
         }
 
         public async Task<bool> PayFeeToReferrers(FeePaymentEntity payment)
@@ -79,7 +89,7 @@ namespace Service.FeeShareEngine.Writer.Services
             {
                 TransactionId = payment.PaymentOperationId,
                 ClientId = Program.Settings.ServiceWalletClientId,
-                FromWalletId = Program.Settings.ServiceWalletBrokerId,
+                FromWalletId = Program.Settings.ServiceWalletId,
                 ToWalletId = walletId.WalletId,
                 Amount = (double)payment.Amount,
                 AssetSymbol = "USD",

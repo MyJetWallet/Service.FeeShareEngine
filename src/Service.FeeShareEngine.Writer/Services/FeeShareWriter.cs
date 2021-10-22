@@ -56,25 +56,21 @@ namespace Service.FeeShareEngine.Writer.Services
                 if(string.IsNullOrEmpty(referrer))
                     continue;
 
-                var (feeInUsd, feeShareAmount) = _paymentService.CalculateFeeShare(swap);
+                var (feeShareAmount, feeShareInUsd) = _paymentService.CalculateFeeShare(swap);
                 
                 var feeShare = new FeeShareEntity
                 {
                     ReferrerClientId = referrer,
-                    FeeShareAmountInUsd = feeShareAmount,
+                    FeeShareAmountInUsd = feeShareInUsd,
                     TimeStamp = DateTime.UtcNow,
                     OperationId = swap.MessageId,
                     FeeTransferOperationId = swap.MessageId + "|FeeTransferToService",
                     FeeAmount = swap.DifferenceVolumeAbs,
                     FeeAsset = swap.DifferenceAsset,
-                    FeeAmountInUsd = feeInUsd,
+                    FeeShareAmount = feeShareAmount,
                     Status = PaymentStatus.New
-                };
-                var isSuccess = await _paymentService.TransferToServiceWallet(feeShare);
-                feeShare.Status = isSuccess ? PaymentStatus.Paid : PaymentStatus.FailedToPay;
-                if(isSuccess)
-                    feeShare.PaymentTimestamp = DateTime.UtcNow;
-                
+                }; 
+                await _paymentService.TransferToServiceWallet(feeShare);
                 feeShares.Add(feeShare);
             }
             
