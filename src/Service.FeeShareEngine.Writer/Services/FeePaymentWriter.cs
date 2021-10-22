@@ -11,8 +11,8 @@ using MyJetWallet.Sdk.ServiceBus;
 using Service.ClientWallets.Grpc;
 using Service.ClientWallets.Grpc.Models;
 using Service.FeeShareEngine.Domain.Models;
+using Service.FeeShareEngine.Domain.Models.Models;
 using Service.FeeShareEngine.Postgres;
-using Service.FeeShareEngine.Postgres.Models;
 
 namespace Service.FeeShareEngine.Writer.Services
 {

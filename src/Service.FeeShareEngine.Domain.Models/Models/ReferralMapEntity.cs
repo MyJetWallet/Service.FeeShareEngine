@@ -1,4 +1,4 @@
-namespace Service.FeeShareEngine.Postgres.Models
+namespace Service.FeeShareEngine.Domain.Models.Models
 {
     public class ReferralMapEntity
     {

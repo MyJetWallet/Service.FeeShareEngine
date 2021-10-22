@@ -2,10 +2,10 @@
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Service.FeeShareEngine.Domain.Models.Models;
 using Service.FeeShareEngine.Grpc;
 using Service.FeeShareEngine.Grpc.Models;
 using Service.FeeShareEngine.Postgres;
-using Service.FeeShareEngine.Postgres.Models;
 using Service.FeeShareEngine.Settings;
 
 namespace Service.FeeShareEngine.Services

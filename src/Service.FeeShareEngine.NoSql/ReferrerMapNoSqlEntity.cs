@@ -1,5 +1,5 @@
 using MyNoSqlServer.Abstractions;
-using Service.FeeShareEngine.Postgres.Models;
+using Service.FeeShareEngine.Domain.Models.Models;
 
 namespace Service.FeeShareEngine.NoSql
 {

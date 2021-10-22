@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.Service;
 using Service.FeeShareEngine.Domain.Models;
-using Service.FeeShareEngine.Postgres.Models;
+using Service.FeeShareEngine.Domain.Models.Models;
 
 namespace Service.FeeShareEngine.Postgres
 {

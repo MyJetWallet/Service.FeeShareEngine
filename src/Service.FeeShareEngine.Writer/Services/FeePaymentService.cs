@@ -7,7 +7,7 @@ using MyJetWallet.Sdk.ServiceBus;
 using Service.ChangeBalanceGateway.Grpc;
 using Service.ClientWallets.Grpc;
 using Service.ClientWallets.Grpc.Models;
-using Service.FeeShareEngine.Postgres.Models;
+using Service.FeeShareEngine.Domain.Models.Models;
 using Service.IndexPrices.Client;
 using Service.Liquidity.Converter.Domain.Models;
 using Service.Liquidity.Converter.Grpc;

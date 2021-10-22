@@ -2,8 +2,8 @@
 using MyJetWallet.Sdk.ServiceBus;
 using MyServiceBus.Abstractions;
 using MyServiceBus.TcpClient;
+using Service.FeeShareEngine.Domain.Models.Models;
 using Service.FeeShareEngine.Grpc;
-using Service.FeeShareEngine.Postgres.Models;
 
 // ReSharper disable UnusedMember.Global
 

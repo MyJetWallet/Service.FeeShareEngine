@@ -7,7 +7,6 @@
   <ItemGroup>
     <ProjectReference PrivateAssets="All" Include="..\Service.FeeShareEngine.Domain.Models\Service.FeeShareEngine.Domain.Models.csproj" />
     <ProjectReference PrivateAssets="All" Include="..\Service.FeeShareEngine.Grpc\Service.FeeShareEngine.Grpc.csproj" />
-    <ProjectReference Include="..\Service.FeeShareEngine.Postgres\Service.FeeShareEngine.Postgres.csproj" />
   </ItemGroup>
 
   <ItemGroup>

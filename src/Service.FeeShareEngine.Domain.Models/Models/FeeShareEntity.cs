@@ -1,8 +1,7 @@
 using System;
 using System.Runtime.Serialization;
-using Service.FeeShareEngine.Domain.Models;
 
-namespace Service.FeeShareEngine.Postgres.Models
+namespace Service.FeeShareEngine.Domain.Models.Models
 {
     [DataContract]
     public class FeeShareEntity
