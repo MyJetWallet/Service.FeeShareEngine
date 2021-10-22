@@ -1,5 +1,7 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Autofac;
 using MyJetWallet.Domain;
 using MyJetWallet.Sdk.ServiceBus;
 using Service.ChangeBalanceGateway.Grpc;
@@ -12,7 +14,7 @@ using Service.Liquidity.Converter.Grpc;
 
 namespace Service.FeeShareEngine.Writer.Services
 {
-    public class FeePaymentService
+    public class FeePaymentService : IStartable
     {
         private readonly IConvertIndexPricesClient _convertPricesClient;
         private readonly ISpotChangeBalanceService _changeBalanceService;
@@ -90,6 +92,17 @@ namespace Service.FeeShareEngine.Writer.Services
                 return false;
 
             return true;   
+        }
+
+        private async Task EnsureServiceWalletIsCreated()
+        {
+            await _walletService.GetWalletsByClient(new JetClientIdentity(Program.Settings.ServiceWalletBrokerId,
+                    Program.Settings.ServiceWalletBrandId, Program.Settings.ServiceWalletClientId));
+        }
+
+        public void Start()
+        {
+            EnsureServiceWalletIsCreated();
         }
     }
 }

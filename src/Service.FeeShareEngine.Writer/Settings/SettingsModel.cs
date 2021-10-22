@@ -38,6 +38,9 @@ namespace Service.FeeShareEngine.Writer.Settings
         [YamlProperty("FeeShareEngine.ServiceWalletBrokerId")]
         public string ServiceWalletBrokerId { get; set; }
         
+        [YamlProperty("FeeShareEngine.ServiceWalletBrandId")]
+        public string ServiceWalletBrandId { get; set; }
+        
         [YamlProperty("FeeShareEngine.MaxCachedEntities")]
         public int MaxCachedEntities { get; set; }
         
