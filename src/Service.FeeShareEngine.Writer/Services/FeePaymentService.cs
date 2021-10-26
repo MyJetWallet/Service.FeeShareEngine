@@ -91,7 +91,8 @@ namespace Service.FeeShareEngine.Writer.Services
         {
             var response = await _walletService.SearchClientsAsync(new SearchWalletsRequest()
             {
-                SearchText = payment.ReferrerClientId
+                SearchText = payment.ReferrerClientId,
+                Take = 1
             });
             
             var referrer = response.Clients?.FirstOrDefault();

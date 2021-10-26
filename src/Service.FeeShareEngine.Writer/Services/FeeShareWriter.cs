@@ -85,7 +85,8 @@ namespace Service.FeeShareEngine.Writer.Services
             
             var client = await _walletService.SearchClientsAsync(new SearchWalletsRequest()
             {
-                SearchText = walletId
+                SearchText = walletId,
+                Take = 1
             });
             var firstClient = client.Clients?.FirstOrDefault();
             if (firstClient == null)
