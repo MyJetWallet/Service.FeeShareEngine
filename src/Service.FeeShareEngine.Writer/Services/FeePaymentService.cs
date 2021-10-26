@@ -47,7 +47,7 @@ namespace Service.FeeShareEngine.Writer.Services
         {
             var conversionRate = _convertPricesClient.GetConvertIndexPriceByPairAsync(swap.DifferenceAsset, "USD");
             var sharePercent = Program.ReloadedSettings(t => t.FeeSharePercent).Invoke();
-            var feeShare = swap.DifferenceVolumeAbs * (sharePercent / 100);
+            var feeShare = swap.DifferenceVolumeAbs * ((decimal)sharePercent / 100);
             var feeShareInUsd = conversionRate.Price * feeShare;
             return (feeShare, feeShareInUsd);
         }
@@ -61,7 +61,7 @@ namespace Service.FeeShareEngine.Writer.Services
                 ClientId = converterSettings.BrokerAccountId,
                 FromWalletId = converterSettings.BrokerWalletId,
                 ToWalletId = Program.Settings.ServiceWalletId,
-                Amount = (double)share.FeeShareAmountInUsd,
+                Amount = (double)Math.Round(share.FeeShareAmountInUsd, 2),
                 AssetSymbol = "USD",
                 Comment = "FeeShare transfer to service wallet",
                 BrokerId = converterSettings.BrokerId,
