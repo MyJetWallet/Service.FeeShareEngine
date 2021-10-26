@@ -35,6 +35,9 @@
         <None Update="Dockerfile">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
+        <None Update="Scripts\SumFeeShares.sql">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
     
     <ItemGroup>

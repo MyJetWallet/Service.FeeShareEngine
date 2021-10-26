@@ -16,5 +16,6 @@ namespace Service.FeeShareEngine.Domain.Models.Models
         [DataMember(Order = 6)] public DateTime PaymentTimestamp { get; set; }
         [DataMember(Order = 7)] public PaymentStatus Status { get; set; }
         [DataMember(Order = 8)] public string PaymentOperationId { get; set; }
+        [DataMember(Order = 9)] public string ErrorMessage { get; set; }
     }
 }

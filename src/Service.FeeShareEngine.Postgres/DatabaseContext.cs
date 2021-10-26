@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -80,8 +82,13 @@ namespace Service.FeeShareEngine.Postgres
             modelBuilder.Entity<FeePaymentEntity>().Property(e => e.PaymentTimestamp);
             modelBuilder.Entity<FeePaymentEntity>().Property(e => e.PeriodFrom);
             modelBuilder.Entity<FeePaymentEntity>().Property(e => e.PeriodTo);
+            
             modelBuilder.Entity<FeePaymentEntity>().HasIndex(e => e.ReferrerClientId);
             modelBuilder.Entity<FeePaymentEntity>().HasIndex(e => e.PeriodFrom);
+            modelBuilder.Entity<FeePaymentEntity>().HasIndex(e => new {e.PeriodFrom, e.PeriodTo});
+            modelBuilder.Entity<FeePaymentEntity>().HasIndex(e => e.Status);
+
+
         }
 
         private void SetReferralMapEntity(ModelBuilder modelBuilder)
@@ -95,7 +102,7 @@ namespace Service.FeeShareEngine.Postgres
         private void SetShareStatEntity(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<ShareStatEntity>().ToTable(ShareStatisticsTableName);
-            modelBuilder.Entity<ShareStatEntity>().HasKey(e => e.PeriodFrom);
+            modelBuilder.Entity<ShareStatEntity>().HasKey(e => new {e.PeriodFrom, e.PeriodTo});
             modelBuilder.Entity<ShareStatEntity>().Property(e => e.PeriodFrom);
             modelBuilder.Entity<ShareStatEntity>().Property(e => e.PeriodTo);
             modelBuilder.Entity<ShareStatEntity>().Property(e => e.CalculationTimestamp);
@@ -105,7 +112,7 @@ namespace Service.FeeShareEngine.Postgres
         
         public async Task<int> UpsetAsync(IEnumerable<FeeShareEntity> entities)
         {
-            var result = await FeeShares.UpsertRange(entities).On(e => e.OperationId).NoUpdate().RunAsync();
+            var result = await FeeShares.UpsertRange(entities).On(e => e.OperationId).AllowIdentityMatch().RunAsync();
             return result;
         }
         
@@ -113,16 +120,7 @@ namespace Service.FeeShareEngine.Postgres
         {
             var result = await FeePayments.UpsertRange(entities)
                 .On(e => new {e.ReferrerClientId, e.PeriodFrom})
-                .WhenMatched((oldEntity, newEntity) => oldEntity.Status == PaymentStatus.Paid ? oldEntity : newEntity)
-                .RunAsync();
-            return result;
-        }
-        
-        public async Task<int> UpsetAsync(IEnumerable<ShareStatEntity> entities)
-        {
-            var result = await ShareStatistics.UpsertRange(entities)
-                .On(e => e.PeriodFrom)
-                .WhenMatched((oldEntity, newEntity) => newEntity.CalculationTimestamp > oldEntity.CalculationTimestamp ? newEntity : oldEntity)
+                .AllowIdentityMatch()
                 .RunAsync();
             return result;
         }
@@ -131,6 +129,34 @@ namespace Service.FeeShareEngine.Postgres
         {
             var result = await Referrals.UpsertRange(entities).AllowIdentityMatch().RunAsync();
             return result;
+        }
+        
+        public async Task SumShares(DateTime periodFrom, DateTime periodTo, ILogger logger)
+        {
+            try
+            {
+                var path = Path.Combine(Environment.CurrentDirectory, @"Scripts/", "SumFeeShares.sql");
+                using var script =
+                    new StreamReader(path);
+                var scriptBody = await script.ReadToEndAsync();
+                
+                 var periodFromString = $"{periodFrom.Year}-{periodFrom.Month.ToString().PadLeft(2, '0')}-{periodFrom.Day.ToString().PadLeft(2, '0')}" +
+                                      $" {periodFrom.Hour.ToString().PadLeft(2, '0')}:{periodFrom.Minute.ToString().PadLeft(2, '0')}:{periodFrom.Second.ToString().PadLeft(2, '0')}";
+                 scriptBody = scriptBody.Replace("${PeriodFrom}", periodFromString);
+                
+                 var periodToString = $"{periodTo.Year}-{periodTo.Month.ToString().PadLeft(2, '0')}-{periodTo.Day.ToString().PadLeft(2, '0')}" +
+                                    $" {periodTo.Hour.ToString().PadLeft(2, '0')}:{periodTo.Minute.ToString().PadLeft(2, '0')}:{periodTo.Second.ToString().PadLeft(2, '0')}";
+                 
+                 scriptBody = scriptBody.Replace("${PeriodTo}", periodToString);
+                 
+                logger.LogInformation($"ExecPaidAsync start with date from: {periodFromString} and date to: {periodToString}");
+                await Database.ExecuteSqlRawAsync(scriptBody);
+                logger.LogInformation($"ExecPaidAsync finish with date from: {periodFromString} and date to: {periodToString}");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, ex.Message);
+            }
         }
 
         public override void Dispose()

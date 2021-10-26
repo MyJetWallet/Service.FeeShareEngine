@@ -23,7 +23,7 @@ namespace Service.FeeShareEngine.Writer.Services
         private readonly IClientWalletService _walletService;
         private readonly FeePaymentService _paymentService;
         private readonly IServiceBusPublisher<FeeShareEntity> _feeSharePublisher;
-
+        private readonly Dictionary<string, ClientContext> _clientContexts = new();
         public FeeShareWriter(
             ILogger<FeeShareWriter> logger, 
             DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder,
@@ -48,19 +48,15 @@ namespace Service.FeeShareEngine.Writer.Services
             var feeShares = new List<FeeShareEntity>();
             foreach (var swap in swaps)
             {
-                var clientId = await _walletService.SearchClientsAsync(new SearchWalletsRequest()
-                {
-                    SearchText = swap.WalletId1
-                });
-                var referrer = await _referralMap.GetReferrerId(clientId.Clients.First().ClientId);
-                if(string.IsNullOrEmpty(referrer))
+                var clientContext = await GetClientContext(swap.WalletId1);
+                if(string.IsNullOrEmpty(clientContext.ReferrerClientId))
                     continue;
 
                 var (feeShareAmount, feeShareInUsd) = _paymentService.CalculateFeeShare(swap);
                 
                 var feeShare = new FeeShareEntity
                 {
-                    ReferrerClientId = referrer,
+                    ReferrerClientId = clientContext.ReferrerClientId,
                     FeeShareAmountInUsd = feeShareInUsd,
                     TimeStamp = DateTime.UtcNow,
                     OperationId = swap.MessageId,
@@ -73,13 +69,61 @@ namespace Service.FeeShareEngine.Writer.Services
                 await _paymentService.TransferToServiceWallet(feeShare);
                 feeShares.Add(feeShare);
             }
-            
-            await using var ctx = DatabaseContext.Create(_dbContextOptionsBuilder);
-            await ctx.UpsetAsync(feeShares);
-            await ctx.SaveChangesAsync();
 
-            await _feeSharePublisher.PublishAsync(feeShares);
+            if (feeShares.Any())
+            {
+                await using var ctx = DatabaseContext.Create(_dbContextOptionsBuilder);
+                await ctx.UpsetAsync(feeShares);
+            }
         }
 
+        private async ValueTask<ClientContext> GetClientContext(string walletId)
+        {
+            if (_clientContexts.TryGetValue(walletId, out var context))
+                return context;
+            
+            
+            var client = await _walletService.SearchClientsAsync(new SearchWalletsRequest()
+            {
+                SearchText = walletId
+            });
+            var firstClient = client.Clients.FirstOrDefault();
+            if (firstClient == null)
+            {
+                _logger.LogError("Cannot find client for walletId {walletId}", walletId);
+                return null;
+            }
+
+            var referrer = await _referralMap.GetReferrerId(firstClient.ClientId);
+            context = new ClientContext(firstClient.ClientId, walletId, firstClient.BrokerId, referrer);
+            _clientContexts[walletId] = context;
+
+            while (_clientContexts.Count > Program.Settings.MaxCachedEntities)
+            {
+                _clientContexts.Remove(_clientContexts.OrderBy(t => t.Value.TimeStamp).First().Key);
+            }
+            
+            return context;
+        }
+
+        private class ClientContext
+        {
+            public string ClientId { get; set; }
+            public string WalletId { get; set; }
+            public string BrokerId { get; set; }
+            public string ReferrerClientId { get; set; }
+            public DateTime TimeStamp { get; set; }
+
+            public ClientContext(string clientId, string walletId, string brokerId, string referrerClientId)
+            {
+                ClientId = clientId;
+                WalletId = walletId;
+                BrokerId = brokerId;
+                ReferrerClientId = referrerClientId;
+                TimeStamp = DateTime.UtcNow;
+            }
+        }
     }
+    
+     
 }

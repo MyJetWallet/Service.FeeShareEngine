@@ -23,7 +23,8 @@ namespace Service.FeeShareEngine.Writer.Services
         private readonly FeePaymentService _feePaymentService;
         private readonly MyTaskTimer _timer;
         private readonly IServiceBusPublisher<FeePaymentEntity> _feePaymentPublisher;
-
+        private DateTime _paidPeriodDate;
+        private PeriodTypes _periodType;
         public FeePaymentWriter(
             ILogger<FeePaymentWriter> logger, 
             DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder, FeePaymentService feePaymentService, IServiceBusPublisher<FeePaymentEntity> feePaymentPublisher)
@@ -32,93 +33,64 @@ namespace Service.FeeShareEngine.Writer.Services
             _dbContextOptionsBuilder = dbContextOptionsBuilder;
             _feePaymentService = feePaymentService;
             _feePaymentPublisher = feePaymentPublisher;
-
-
-            _timer = new MyTaskTimer(nameof(FeePaymentWriter), TimeSpan.FromHours(6), logger, DoTimer);
+            _timer = new MyTaskTimer(nameof(FeePaymentWriter), TimeSpan.FromMinutes(1), logger, DoTimer);
         }
         
         private async Task DoTimer()
         {
-            await SumFeeShares();
+            await CalculateFeePayments();
             
-            var today = DateTime.UtcNow;
-            var endOfMonth = today.AddMonths(1).AddDays(-1);
+            var (periodStart, periodEnd) = PeriodHelper.GetPeriod(DateTime.UtcNow, _periodType);
 
-            if (endOfMonth.Date == today.Date)
+            if (_paidPeriodDate < periodEnd)
             {
-                await ExecuteFeePayments();
-                await RecordPaymentStatistics();
+                await ExecuteFeePayments(periodEnd);
+                await UpdateLastPaidPeriod();
             }
-
         }
 
-        private async Task SumFeeShares()
+        private async Task UpdateLastPaidPeriod()
         {
-            var today = DateTime.UtcNow;
-            var periodFrom = new DateTime(today.Year, today.Month, 1);
-            var periodTo = periodFrom.AddMonths(1).AddDays(-1);
             await using var ctx = DatabaseContext.Create(_dbContextOptionsBuilder);
-            var shares = ctx.FeeShares.Where(t => t.TimeStamp >= periodFrom).AsEnumerable().GroupBy(t=>t.ReferrerClientId);
-            var payments = new List<FeePaymentEntity>();
-            foreach (var shareGroup in shares)
+            var last = ctx.ShareStatistics.OrderByDescending(t => t.PeriodTo).AsEnumerable().FirstOrDefault();
+            _paidPeriodDate = last?.PeriodTo ?? DateTime.MinValue;
+        }
+        
+        private async Task CalculateFeePayments()
+        {
+            var (periodStart, periodEnd) = PeriodHelper.GetPeriod(DateTime.UtcNow, _periodType);
+            await using var ctx = DatabaseContext.Create(_dbContextOptionsBuilder);
+            await ctx.SumShares(periodStart, periodEnd, _logger);
+        }
+
+        private async Task ExecuteFeePayments(DateTime periodEnd)
+        {
+            List<FeePaymentEntity> payments;
+            do
             {
-                payments.Add(new FeePaymentEntity
+                await using var ctx = DatabaseContext.Create(_dbContextOptionsBuilder);
+                payments = ctx.FeePayments
+                    .Where(t => t.Status == PaymentStatus.New && t.PeriodTo <= periodEnd)
+                    .Take(100)
+                    .ToList();
+
+                foreach (var payment in payments)
                 {
-                    PaymentOperationId = Guid.NewGuid().ToString("N"),
-                    ReferrerClientId = shareGroup.Key,
-                    Amount = shareGroup.Sum(t => t.FeeShareAmountInUsd),
-                    PeriodFrom = periodFrom,
-                    PeriodTo = periodTo,
-                    CalculationTimestamp = DateTime.UtcNow,
-                    Status = PaymentStatus.New
-                });
-            }
-            
-            await ctx.UpsetAsync(payments);
-            await ctx.SaveChangesAsync();
+                    await _feePaymentService.PayFeeToReferrers(payment);
+                }
+
+                await ctx.UpsetAsync(payments);
+            } while (payments.Any());
         }
-
-        private async Task ExecuteFeePayments()
-        {
-            var currentPeriod = DateTime.UtcNow.AddMonths(-1);
-            await using var ctx = DatabaseContext.Create(_dbContextOptionsBuilder);
-            var payments = ctx.FeePayments.Where(t => t.PeriodTo < currentPeriod && t.Status == PaymentStatus.New)
-                .ToList();
-
-            foreach (var payment in payments)
-            {
-
-                var isSuccess = await _feePaymentService.PayFeeToReferrers(payment);
-                payment.PaymentTimestamp = DateTime.UtcNow;
-                payment.Status = isSuccess ? PaymentStatus.Paid : PaymentStatus.FailedToPay;
-            }
-
-            await ctx.UpsetAsync(payments);
-            await ctx.SaveChangesAsync();
-
-            await _feePaymentPublisher.PublishAsync(payments);
-        }
-
-        private async Task RecordPaymentStatistics()
-        {
-            var today = DateTime.UtcNow;
-            var periodFrom = new DateTime(today.Year, today.Month, 1);
-            var periodTo = periodFrom.AddMonths(1).AddDays(-1);
-            await using var ctx = DatabaseContext.Create(_dbContextOptionsBuilder);
-            var payments = ctx.FeePayments.Where(t => t.PeriodFrom >= periodFrom);
-            var stat = new ShareStatEntity
-            {
-                Amount = payments.Sum(t => t.Amount),
-                PeriodFrom = periodFrom,
-                PeriodTo = periodTo,
-                CalculationTimestamp = DateTime.UtcNow
-            };
-            await ctx.UpsetAsync(new[] { stat });
-            await ctx.SaveChangesAsync();
-        }
-
+        
         public void Start()
         {
+            if(!Enum.TryParse(typeof(PeriodTypes), Program.Settings.PeriodType, true, out var type))
+            {
+                _logger.LogError("Period {period} cannot be parsed", Program.Settings.PeriodType);
+                throw new Exception($"Period {Program.Settings.PeriodType} cannot be parsed");
+            }
+            _periodType = (PeriodTypes)type;
             _timer.Start();
         }
     }

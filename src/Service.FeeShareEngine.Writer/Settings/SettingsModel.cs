@@ -52,5 +52,8 @@ namespace Service.FeeShareEngine.Writer.Settings
         
         [YamlProperty("FeeShareEngine.LiquidityConverterGrpcServiceUrl")]
         public string LiquidityConverterGrpcServiceUrl { get; set; }
+        
+        [YamlProperty("FeeShareEngine.PeriodType")]
+        public string PeriodType { get; set; }
     }
 }

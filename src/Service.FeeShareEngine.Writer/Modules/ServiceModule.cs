@@ -26,10 +26,8 @@ namespace Service.FeeShareEngine.Writer.Modules
             var myNoSqlClient = builder.CreateNoSqlClient(Program.ReloadedSettings(t => t.MyNoSqlReaderHostPort));
             builder.RegisterLiquidityConverterManagerClient(Program.Settings.LiquidityConverterGrpcServiceUrl);
             builder.RegisterSpotChangeBalanceGatewayClient(Program.Settings.ChangeBalanceGatewayGrpcServiceUrl);
-            builder.RegisterClientWalletsClients(myNoSqlClient, Program.Settings.ClientWalletsGrpcServiceUrl);
+            builder.RegisterClientWalletsClientsWithoutCache(Program.Settings.ClientWalletsGrpcServiceUrl);
             builder.RegisterConvertIndexPricesClient(myNoSqlClient);
-            builder.RegisterMyNoSqlWriter<ReferrerMapNoSqlEntity>(Program.ReloadedSettings(e => e.MyNoSqlWriterUrl),
-                ReferrerMapNoSqlEntity.TableName);
             
             builder
                 .RegisterType<ReferralMapCache>()

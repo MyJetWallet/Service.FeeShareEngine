@@ -21,5 +21,6 @@ namespace Service.FeeShareEngine.Domain.Models.Models
         [DataMember(Order = 11)] public string ConverterWalletId { get; set; }
         [DataMember(Order = 12)] public string FeeShareWalletId { get; set; }
         [DataMember(Order = 13)] public string BrokerId { get; set; }
+        [DataMember(Order = 14)] public string ErrorMessage { get; set; }
     }
 }
