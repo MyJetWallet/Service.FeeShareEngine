@@ -49,7 +49,7 @@ namespace Service.FeeShareEngine.Writer.Services
             foreach (var swap in swaps)
             {
                 var clientContext = await GetClientContext(swap.WalletId1);
-                if(string.IsNullOrEmpty(clientContext.ReferrerClientId))
+                if(string.IsNullOrEmpty(clientContext?.ReferrerClientId))
                     continue;
 
                 var (feeShareAmount, feeShareInUsd) = _paymentService.CalculateFeeShare(swap);
@@ -87,7 +87,7 @@ namespace Service.FeeShareEngine.Writer.Services
             {
                 SearchText = walletId
             });
-            var firstClient = client.Clients.FirstOrDefault();
+            var firstClient = client.Clients?.FirstOrDefault();
             if (firstClient == null)
             {
                 _logger.LogError("Cannot find client for walletId {walletId}", walletId);
