@@ -33,5 +33,15 @@ namespace Service.FeeShareEngine.Services
                 }
             });
         }
+
+        public async Task<GetAllReferralMapsResponse> GetAllReferralMaps()
+        {
+            await using var ctx = DatabaseContext.Create(_dbContextOptionsBuilder);
+            var maps = await ctx.Referrals.ToListAsync();
+            return new GetAllReferralMapsResponse()
+            {
+                Referrals = maps
+            };
+        }
     }
 }

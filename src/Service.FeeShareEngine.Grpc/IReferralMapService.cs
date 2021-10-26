@@ -9,5 +9,8 @@ namespace Service.FeeShareEngine.Grpc
     {
         [OperationContract]
         Task AddReferralLink(AddReferralRequest request);
+
+        [OperationContract]
+        Task<GetAllReferralMapsResponse> GetAllReferralMaps();
     }
 }
