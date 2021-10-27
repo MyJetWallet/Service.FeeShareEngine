@@ -60,7 +60,7 @@ namespace Service.FeeShareEngine.Writer.Services
         {
             var (periodStart, periodEnd) = PeriodHelper.GetPeriod(DateTime.UtcNow, _periodType);
             await using var ctx = DatabaseContext.Create(_dbContextOptionsBuilder);
-            await ctx.SumShares(periodStart, periodEnd, _logger);
+            //await ctx.SumShares(periodStart, periodEnd, _logger);
         }
 
         private async Task ExecuteFeePayments(DateTime periodEnd)
@@ -85,12 +85,6 @@ namespace Service.FeeShareEngine.Writer.Services
         
         public void Start()
         {
-            if(!Enum.TryParse(typeof(PeriodTypes), Program.Settings.PeriodType, true, out var type))
-            {
-                _logger.LogError("Period {period} cannot be parsed", Program.Settings.PeriodType);
-                throw new Exception($"Period {Program.Settings.PeriodType} cannot be parsed");
-            }
-            _periodType = (PeriodTypes)type;
             _timer.Start();
         }
     }

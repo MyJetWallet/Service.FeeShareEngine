@@ -15,7 +15,7 @@ namespace Service.FeeShareEngine.Client
         {
             var factory = new FeeShareEngineClientFactory(grpcServiceUrl);
 
-            builder.RegisterInstance(factory.GetReferralMapService()).As<IReferralMapService>().SingleInstance();
+            builder.RegisterInstance(factory.GetReferralMapService()).As<IFeeShareEngineManager>().SingleInstance();
             builder.RegisterInstance(factory.GetFeesService()).As<IFeesService>().SingleInstance();
 
         }

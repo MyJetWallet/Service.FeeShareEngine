@@ -27,11 +27,13 @@ namespace Service.FeeShareEngine.Postgres
         private const string FeeShareTableName = "fee_shares";
         private const string FeePaymentTableName = "fee_payments";
         private const string ShareStatisticsTableName = "share_statistics";
-        
+        private const string FeeShareGroupsTableName = "fee_share_groups";
+
         public DbSet<FeeShareEntity> FeeShares { get; set; }
         public DbSet<FeePaymentEntity> FeePayments { get; set; }
         public DbSet<ReferralMapEntity> Referrals { get; set; }
         public DbSet<ShareStatEntity> ShareStatistics { get; set; }
+        public DbSet<FeeShareGroup> FeeShareGroups { get; set; }
         
         private Activity _activity;
 
@@ -57,6 +59,7 @@ namespace Service.FeeShareEngine.Postgres
             SetFeePaymentEntity(modelBuilder);
             SetReferralMapEntity(modelBuilder);
             SetShareStatEntity(modelBuilder);
+            SetFeeGroupsEntity(modelBuilder);
             base.OnModelCreating(modelBuilder);
         }
 
@@ -75,7 +78,7 @@ namespace Service.FeeShareEngine.Postgres
         private void SetFeePaymentEntity(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<FeePaymentEntity>().ToTable(FeePaymentTableName);
-            modelBuilder.Entity<FeePaymentEntity>().HasKey(e => new { e.ReferrerClientId, e.PeriodFrom});
+            modelBuilder.Entity<FeePaymentEntity>().HasKey(e => new { e.ReferrerClientId, e.PeriodFrom, e.PeriodTo, e.AssetId});
             modelBuilder.Entity<FeePaymentEntity>().Property(e => e.Amount);
             modelBuilder.Entity<FeePaymentEntity>().Property(e => e.ReferrerClientId).HasMaxLength(256);
             modelBuilder.Entity<FeePaymentEntity>().Property(e => e.CalculationTimestamp);
@@ -102,11 +105,17 @@ namespace Service.FeeShareEngine.Postgres
         private void SetShareStatEntity(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<ShareStatEntity>().ToTable(ShareStatisticsTableName);
-            modelBuilder.Entity<ShareStatEntity>().HasKey(e => new {e.PeriodFrom, e.PeriodTo});
+            modelBuilder.Entity<ShareStatEntity>().HasKey(e => new {e.PeriodFrom, e.PeriodTo, e.AssetId});
             modelBuilder.Entity<ShareStatEntity>().Property(e => e.PeriodFrom);
             modelBuilder.Entity<ShareStatEntity>().Property(e => e.PeriodTo);
             modelBuilder.Entity<ShareStatEntity>().Property(e => e.CalculationTimestamp);
             modelBuilder.Entity<ShareStatEntity>().Property(e => e.Amount);
+        }
+
+        private void SetFeeGroupsEntity(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<FeeShareGroup>().ToTable(FeeShareGroupsTableName);
+            modelBuilder.Entity<FeeShareGroup>().HasKey(e => e.GroupId);
         }
 
         
@@ -128,6 +137,12 @@ namespace Service.FeeShareEngine.Postgres
         public async Task<int> UpsetAsync(IEnumerable<ReferralMapEntity> entities)
         {
             var result = await Referrals.UpsertRange(entities).AllowIdentityMatch().RunAsync();
+            return result;
+        }
+        
+        public async Task<int> UpsetAsync(IEnumerable<FeeShareGroup> entities)
+        {
+            var result = await FeeShareGroups.UpsertRange(entities).AllowIdentityMatch().RunAsync();
             return result;
         }
         

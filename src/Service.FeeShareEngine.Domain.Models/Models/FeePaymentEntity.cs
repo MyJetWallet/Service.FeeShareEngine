@@ -17,5 +17,7 @@ namespace Service.FeeShareEngine.Domain.Models.Models
         [DataMember(Order = 7)] public PaymentStatus Status { get; set; }
         [DataMember(Order = 8)] public string PaymentOperationId { get; set; }
         [DataMember(Order = 9)] public string ErrorMessage { get; set; }
+        
+        [DataMember(Order = 10)] public string AssetId { get; set; }
     }
 }

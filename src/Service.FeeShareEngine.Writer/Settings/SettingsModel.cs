@@ -29,17 +29,6 @@ namespace Service.FeeShareEngine.Writer.Settings
         [YamlProperty("FeeShareEngine.FeeSharePercent")]
         public int FeeSharePercent { get; set; }
         
-        [YamlProperty("FeeShareEngine.ServiceWalletClientId")]
-        public string ServiceWalletClientId { get; set; }
-        
-        [YamlProperty("FeeShareEngine.ServiceWalletId")]
-        public string ServiceWalletId { get; set; }
-        
-        [YamlProperty("FeeShareEngine.ServiceWalletBrokerId")]
-        public string ServiceWalletBrokerId { get; set; }
-        
-        [YamlProperty("FeeShareEngine.ServiceWalletBrandId")]
-        public string ServiceWalletBrandId { get; set; }
         
         [YamlProperty("FeeShareEngine.MaxCachedEntities")]
         public int MaxCachedEntities { get; set; }
@@ -52,6 +41,18 @@ namespace Service.FeeShareEngine.Writer.Settings
         
         [YamlProperty("FeeShareEngine.LiquidityConverterGrpcServiceUrl")]
         public string LiquidityConverterGrpcServiceUrl { get; set; }
+
+        [YamlProperty("FeeShareEngine.ServiceWalletClientId")]
+        public string ServiceWalletClientId { get; set; }
+        
+        [YamlProperty("FeeShareEngine.ServiceWalletId")]
+        public string ServiceWalletId { get; set; }
+        
+        [YamlProperty("FeeShareEngine.ServiceWalletBrokerId")]
+        public string ServiceWalletBrokerId { get; set; }
+        
+        [YamlProperty("FeeShareEngine.ServiceWalletBrandId")]
+        public string ServiceWalletBrandId { get; set; }
         
         [YamlProperty("FeeShareEngine.PeriodType")]
         public string PeriodType { get; set; }

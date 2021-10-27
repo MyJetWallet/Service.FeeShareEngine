@@ -30,9 +30,10 @@ namespace Service.FeeShareEngine.Writer.Services
         private readonly IServiceBusPublisher<FeeShareEntity> _feeSharePublisher;
         private readonly IServiceBusPublisher<FeePaymentEntity> _feePaymentPublisher;
         private readonly ILogger<FeePaymentService> _logger;
+        private readonly SettingsHelper _settingsHelper;
 
 
-        public FeePaymentService(IConvertIndexPricesClient convertPricesClient, ISpotChangeBalanceService changeBalanceService, ILiquidityConverterSettingsManager liquidityConverterSettings, IClientWalletService walletService, IServiceBusPublisher<FeeShareEntity> feeSharePublisher, ILogger<FeePaymentService> logger, IServiceBusPublisher<FeePaymentEntity> feePaymentPublisher)
+        public FeePaymentService(IConvertIndexPricesClient convertPricesClient, ISpotChangeBalanceService changeBalanceService, ILiquidityConverterSettingsManager liquidityConverterSettings, IClientWalletService walletService, IServiceBusPublisher<FeeShareEntity> feeSharePublisher, ILogger<FeePaymentService> logger, IServiceBusPublisher<FeePaymentEntity> feePaymentPublisher, SettingsHelper settingsHelper)
         {
             _convertPricesClient = convertPricesClient;
             _changeBalanceService = changeBalanceService;
@@ -41,6 +42,7 @@ namespace Service.FeeShareEngine.Writer.Services
             _feeSharePublisher = feeSharePublisher;
             _logger = logger;
             _feePaymentPublisher = feePaymentPublisher;
+            _settingsHelper = settingsHelper;
         }
 
         public (decimal feeShare, decimal feeShareInUsd) CalculateFeeShare(SwapMessage swap)
@@ -60,7 +62,7 @@ namespace Service.FeeShareEngine.Writer.Services
                 TransactionId = share.FeeTransferOperationId,
                 ClientId = converterSettings.BrokerAccountId,
                 FromWalletId = converterSettings.BrokerWalletId,
-                ToWalletId = Program.Settings.ServiceWalletId,
+                ToWalletId = _settingsHelper.SettingsModel.FeeShareEngineWalletId,
                 Amount = (double)Math.Round(share.FeeShareAmountInUsd, 2),
                 AssetSymbol = "USD",
                 Comment = "FeeShare transfer to service wallet",
@@ -69,7 +71,7 @@ namespace Service.FeeShareEngine.Writer.Services
             };
             var result = await _changeBalanceService.TransferFeeShareToServiceWalletAsync(request);
 
-            share.FeeShareWalletId = Program.Settings.ServiceWalletId;
+            share.FeeShareWalletId = _settingsHelper.SettingsModel.FeeShareEngineWalletId;
             share.ConverterWalletId = converterSettings.BrokerWalletId;
             share.BrokerId = converterSettings.BrokerId;
 
@@ -114,8 +116,8 @@ namespace Service.FeeShareEngine.Writer.Services
             var request = new FeeTransferRequest
             {
                 TransactionId = payment.PaymentOperationId,
-                ClientId = Program.Settings.ServiceWalletClientId,
-                FromWalletId = Program.Settings.ServiceWalletId,
+                ClientId = _settingsHelper.SettingsModel.FeeShareEngineClientId,
+                FromWalletId = _settingsHelper.SettingsModel.FeeShareEngineWalletId,
                 ToWalletId = walletId.WalletId,
                 Amount = (double)payment.Amount,
                 AssetSymbol = "USD",
@@ -142,8 +144,8 @@ namespace Service.FeeShareEngine.Writer.Services
 
         private async Task EnsureServiceWalletIsCreated()
         {
-            await _walletService.GetWalletsByClient(new JetClientIdentity(Program.Settings.ServiceWalletBrokerId,
-                    Program.Settings.ServiceWalletBrandId, Program.Settings.ServiceWalletClientId));
+            await _walletService.GetWalletsByClient(new JetClientIdentity(_settingsHelper.SettingsModel.FeeShareEngineBrokerId,
+                _settingsHelper.SettingsModel.FeeShareEngineBrandId, _settingsHelper.SettingsModel.FeeShareEngineClientId));
         }
 
         private LiquidityConverterSettings GetConverterSettings()

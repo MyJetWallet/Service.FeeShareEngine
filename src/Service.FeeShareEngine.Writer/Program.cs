@@ -61,7 +61,7 @@ namespace Service.FeeShareEngine.Writer
                 .UseServiceProviderFactory(new AutofacServiceProviderFactory())
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    var httpPort = Environment.GetEnvironmentVariable("HTTP_PORT") ?? "8080";
+                    var httpPort = Environment.GetEnvironmentVariable("HTTP_PORT") ?? "8082";
                     var grpcPort = Environment.GetEnvironmentVariable("GRPC_PORT") ?? "80";
 
                     Console.WriteLine($"HTTP PORT: {httpPort}");

@@ -11,7 +11,7 @@ namespace Service.FeeShareEngine.Client
         {
         }
 
-        public IReferralMapService GetReferralMapService() => CreateGrpcService<IReferralMapService>();
+        public IFeeShareEngineManager GetReferralMapService() => CreateGrpcService<IFeeShareEngineManager>();
         
         public IFeesService GetFeesService() => CreateGrpcService<IFeesService>();
 

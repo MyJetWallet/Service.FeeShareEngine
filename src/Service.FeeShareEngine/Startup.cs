@@ -50,7 +50,7 @@ namespace Service.FeeShareEngine
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapGrpcSchema<ReferralMapService, IReferralMapService>();
+                endpoints.MapGrpcSchema<FeeShareEngineManager, IFeeShareEngineManager>();
                 endpoints.MapGrpcSchema<FeesService, IFeesService>();
 
                 endpoints.MapGrpcSchemaRegistry();

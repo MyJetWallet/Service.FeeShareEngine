@@ -10,5 +10,8 @@ namespace Service.FeeShareEngine.Grpc.Models
         
         [DataMember(Order = 2)]
         public string ReferrerClientId { get; set; }
+        
+        [DataMember(Order = 3)]
+        public string FeeShareGroupId { get; set; } 
     }
 }

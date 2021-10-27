@@ -49,7 +49,10 @@ namespace Service.FeeShareEngine.Writer.Modules
                 .RegisterType<FeePaymentService>()
                 .AsSelf()
                 .SingleInstance();
-            
+
+            builder.RegisterType<SettingsHelper>().AsSelf().AutoActivate().SingleInstance();
+            builder.RegisterMyNoSqlWriter<FeeShareSettingsNoSqlEntity>(
+                Program.ReloadedSettings(t => t.MyNoSqlWriterUrl), FeeShareSettingsNoSqlEntity.TableName);
 
         }
     }
