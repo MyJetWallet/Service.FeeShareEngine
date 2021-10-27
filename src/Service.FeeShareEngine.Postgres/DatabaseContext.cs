@@ -68,7 +68,7 @@ namespace Service.FeeShareEngine.Postgres
             modelBuilder.Entity<FeeShareEntity>().ToTable(FeeShareTableName);
             modelBuilder.Entity<FeeShareEntity>().HasKey(e => e.OperationId);
             modelBuilder.Entity<FeeShareEntity>().Property(e => e.OperationId).HasMaxLength(512);
-            modelBuilder.Entity<FeeShareEntity>().Property(e => e.FeeShareAmountInUsd);
+            modelBuilder.Entity<FeeShareEntity>().Property(e => e.FeeShareAmountInTargetAsset);
             modelBuilder.Entity<FeeShareEntity>().Property(e => e.ReferrerClientId).HasMaxLength(256);
             modelBuilder.Entity<FeeShareEntity>().Property(e => e.TimeStamp);
             modelBuilder.Entity<FeeShareEntity>().HasIndex(e => new {e.ReferrerClientId, e.TimeStamp});

@@ -57,13 +57,13 @@ namespace Service.FeeShareEngine.Writer.Services
                 var feeShare = new FeeShareEntity
                 {
                     ReferrerClientId = clientContext.ReferrerClientId,
-                    FeeShareAmountInUsd = feeShareInUsd,
+                    FeeShareAmountInTargetAsset = feeShareInUsd,
                     TimeStamp = DateTime.UtcNow,
                     OperationId = swap.MessageId,
                     FeeTransferOperationId = swap.MessageId + "|FeeTransferToService",
                     FeeAmount = swap.DifferenceVolumeAbs,
                     FeeAsset = swap.DifferenceAsset,
-                    FeeShareAmount = feeShareAmount,
+                    FeeShareAmountInFeeAsset = feeShareAmount,
                     Status = PaymentStatus.New
                 }; 
                 await _paymentService.TransferToServiceWallet(feeShare);

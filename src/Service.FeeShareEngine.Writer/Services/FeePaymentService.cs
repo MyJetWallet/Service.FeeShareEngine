@@ -63,7 +63,7 @@ namespace Service.FeeShareEngine.Writer.Services
                 ClientId = converterSettings.BrokerAccountId,
                 FromWalletId = converterSettings.BrokerWalletId,
                 ToWalletId = _settingsHelper.SettingsModel.FeeShareEngineWalletId,
-                Amount = (double)Math.Round(share.FeeShareAmountInUsd, 2),
+                Amount = (double)Math.Round(share.FeeShareAmountInTargetAsset, 2),
                 AssetSymbol = "USD",
                 Comment = "FeeShare transfer to service wallet",
                 BrokerId = converterSettings.BrokerId,

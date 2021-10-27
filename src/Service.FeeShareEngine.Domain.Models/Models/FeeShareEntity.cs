@@ -11,8 +11,8 @@ namespace Service.FeeShareEngine.Domain.Models.Models
         [DataMember(Order = 1)] public string ReferrerClientId { get; set; }
         [DataMember(Order = 2)] public decimal FeeAmount { get; set; }
         [DataMember(Order = 3)] public string FeeAsset { get; set; }
-        [DataMember(Order = 4)] public decimal FeeShareAmount { get; set; }
-        [DataMember(Order = 5)] public decimal FeeShareAmountInUsd { get; set; }
+        [DataMember(Order = 4)] public decimal FeeShareAmountInFeeAsset { get; set; }
+        [DataMember(Order = 5)] public decimal FeeShareAmountInTargetAsset { get; set; }
         [DataMember(Order = 6)] public DateTime TimeStamp { get; set; }
         [DataMember(Order = 7)] public string OperationId { get; set; }
         [DataMember(Order = 8)] public string FeeTransferOperationId { get; set; }
@@ -22,5 +22,7 @@ namespace Service.FeeShareEngine.Domain.Models.Models
         [DataMember(Order = 12)] public string FeeShareWalletId { get; set; }
         [DataMember(Order = 13)] public string BrokerId { get; set; }
         [DataMember(Order = 14)] public string ErrorMessage { get; set; }
+        [DataMember(Order = 15)] public string FeeShareAsset { get; set; }
+        [DataMember(Order = 16)] public decimal FeeToTargetConversionRate { get; set; }
     }
 }
