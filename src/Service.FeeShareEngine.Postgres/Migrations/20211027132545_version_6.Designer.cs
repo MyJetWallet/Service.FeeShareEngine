@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Service.FeeShareEngine.Postgres;
@@ -9,9 +10,10 @@ using Service.FeeShareEngine.Postgres;
 namespace Service.FeeShareEngine.Postgres.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20211027132545_version_6")]
+    partial class version_6
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -143,7 +145,7 @@ namespace Service.FeeShareEngine.Postgres.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
-                    b.Property<string>("FeeShareGroupId")
+                    b.Property<string>("FeeShareGroupGroupId")
                         .HasColumnType("text");
 
                     b.Property<string>("ReferrerClientId")
@@ -151,6 +153,8 @@ namespace Service.FeeShareEngine.Postgres.Migrations
                         .HasColumnType("character varying(256)");
 
                     b.HasKey("ClientId");
+
+                    b.HasIndex("FeeShareGroupGroupId");
 
                     b.ToTable("referral_map");
                 });
@@ -181,6 +185,15 @@ namespace Service.FeeShareEngine.Postgres.Migrations
                     b.HasKey("PeriodFrom", "PeriodTo", "AssetId");
 
                     b.ToTable("share_statistics");
+                });
+
+            modelBuilder.Entity("Service.FeeShareEngine.Domain.Models.Models.ReferralMapEntity", b =>
+                {
+                    b.HasOne("Service.FeeShareEngine.Domain.Models.Models.FeeShareGroup", "FeeShareGroup")
+                        .WithMany()
+                        .HasForeignKey("FeeShareGroupGroupId");
+
+                    b.Navigation("FeeShareGroup");
                 });
 #pragma warning restore 612, 618
         }

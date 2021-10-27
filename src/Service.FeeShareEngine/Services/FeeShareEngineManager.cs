@@ -54,7 +54,7 @@ namespace Service.FeeShareEngine.Services
                     {
                         ReferrerClientId = request.ReferrerClientId,
                         ClientId = request.ClientId,
-                        FeeShareGroup = feeShareGroup
+                        FeeShareGroupId = request.FeeShareGroupId
                     }
                 });
                 return new OperationResponse() { IsSuccess = true };
@@ -93,7 +93,6 @@ namespace Service.FeeShareEngine.Services
         {
             await using var ctx = DatabaseContext.Create(_dbContextOptionsBuilder);
             var maps = await ctx.Referrals        
-                .Include(t=>t.FeeShareGroup)
                 .ToListAsync();
             return new GetAllReferralMapsResponse()
             {
