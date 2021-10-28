@@ -148,6 +148,15 @@ namespace Service.FeeShareEngine.Services
             {
                 await using var ctx = DatabaseContext.Create(_dbContextOptionsBuilder);
                 var entity = await ctx.FeeShareGroups.FirstOrDefaultAsync(t => t.GroupId == request.FeeShareGroupId);
+                var users = ctx.Referrals.Count(t => t.FeeShareGroupId == request.FeeShareGroupId);
+                if (users > 0)
+                {
+                    return new OperationResponse()
+                    {
+                        IsSuccess = false,
+                        ErrorCode = "Unable to delete fee share group that contains users"
+                    };
+                }
                 if (entity != null)
                 {
                     ctx.FeeShareGroups.Remove(entity);
