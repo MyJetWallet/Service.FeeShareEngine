@@ -77,7 +77,10 @@ namespace Service.FeeShareEngine.Services
                 await using var ctx = DatabaseContext.Create(_dbContextOptionsBuilder);
                 var entity = await ctx.Referrals.FirstOrDefaultAsync(t => t.ClientId == request.ClientId);
                 if (entity != null)
+                {
                     ctx.Referrals.Remove(entity);
+                    await ctx.SaveChangesAsync();
+                }
                 return new OperationResponse() { IsSuccess = true };
             }
             catch (Exception e)
@@ -146,7 +149,11 @@ namespace Service.FeeShareEngine.Services
                 await using var ctx = DatabaseContext.Create(_dbContextOptionsBuilder);
                 var entity = await ctx.FeeShareGroups.FirstOrDefaultAsync(t => t.GroupId == request.FeeShareGroupId);
                 if (entity != null)
+                {
                     ctx.FeeShareGroups.Remove(entity);
+                    await ctx.SaveChangesAsync();
+                }
+
                 return new OperationResponse() { IsSuccess = true };
             }
             catch (Exception e)
