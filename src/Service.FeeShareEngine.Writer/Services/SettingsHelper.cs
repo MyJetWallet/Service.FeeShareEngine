@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Autofac;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Sdk.Service.Tools;
 using MyNoSqlServer.Abstractions;
@@ -9,7 +10,7 @@ using Service.FeeShareEngine.Writer.Settings;
 
 namespace Service.FeeShareEngine.Writer.Services
 {
-    public class SettingsHelper
+    public class SettingsHelper : IStartable
     {
         private readonly IMyNoSqlServerDataWriter<FeeShareSettingsNoSqlEntity> _settingWriter;
         private readonly MyTaskTimer _timer;
@@ -52,6 +53,11 @@ namespace Service.FeeShareEngine.Writer.Services
                 };
                 await _settingWriter.InsertOrReplaceAsync(FeeShareSettingsNoSqlEntity.Create(SettingsModel));
             }
+        }
+
+        public void Start()
+        {
+            DoTimer();
         }
     }
 }

@@ -14,9 +14,10 @@ namespace Service.FeeShareEngine.Writer
         private readonly FeeShareWriter _feeShareWriter;
         private readonly FeePaymentWriter _feePaymentWriter;
         private readonly MyNoSqlClientLifeTime _myNoSqlClientLifeTime;
-        private SharesPaymentService _sharesPaymentService;
+        private readonly SharesPaymentService _sharesPaymentService;
+        private readonly SettingsHelper _settingsHelper;
 
-        public ApplicationLifetimeManager(IHostApplicationLifetime appLifetime, ILogger<ApplicationLifetimeManager> logger, ServiceBusLifeTime client, FeeShareWriter feeShareWriter, FeePaymentWriter feePaymentWriter, MyNoSqlClientLifeTime myNoSqlClientLifeTime, SharesPaymentService sharesPaymentService)
+        public ApplicationLifetimeManager(IHostApplicationLifetime appLifetime, ILogger<ApplicationLifetimeManager> logger, ServiceBusLifeTime client, FeeShareWriter feeShareWriter, FeePaymentWriter feePaymentWriter, MyNoSqlClientLifeTime myNoSqlClientLifeTime, SharesPaymentService sharesPaymentService, SettingsHelper settingsHelper)
             : base(appLifetime)
         {
             _logger = logger;
@@ -25,6 +26,7 @@ namespace Service.FeeShareEngine.Writer
             _feePaymentWriter = feePaymentWriter;
             _myNoSqlClientLifeTime = myNoSqlClientLifeTime;
             _sharesPaymentService = sharesPaymentService;
+            _settingsHelper = settingsHelper;
         }
 
         protected override void OnStarted()
@@ -33,6 +35,7 @@ namespace Service.FeeShareEngine.Writer
             _client.Start();
             _feePaymentWriter.Start();
             _myNoSqlClientLifeTime.Start();
+            _settingsHelper.Start();
             _sharesPaymentService.Start();
         }
 
