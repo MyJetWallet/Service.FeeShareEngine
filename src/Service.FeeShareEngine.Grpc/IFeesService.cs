@@ -8,12 +8,18 @@ namespace Service.FeeShareEngine.Grpc
     public interface IFeesService
     {
         [OperationContract]
-        Task<GetAllStatsResponse> GetAllStatsAsync();
+        Task<GetAllStatsResponse> GetAllStatsAsync(PaginationRequest request);
         
         [OperationContract]
-        Task<GetAllFeePaymentsResponse> GetAllFeePaymentsAsync();
+        Task<GetAllFeePaymentsResponse> GetAllFeePaymentsAsync(PaginationRequest request);
         
         [OperationContract]
-        Task<GetAllFeeSharesResponse> GetAllFeeSharesAsync();
+        Task<GetAllFeeSharesResponse> GetAllFeeSharesAsync(PaginationRequest request);
+        
+        [OperationContract]
+        Task<OperationResponse> RetryFailedFeePayments();
+        
+        [OperationContract]
+        Task<OperationResponse> RetryFailedFeeSettlements();
     }
 }

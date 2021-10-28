@@ -89,7 +89,7 @@ namespace Service.FeeShareEngine.Services
             }
         }
 
-        public async Task<GetAllReferralMapsResponse> GetAllReferralMaps()
+        public async Task<GetAllReferralMapsResponse> GetAllReferralMaps(PaginationRequest request)
         {
             await using var ctx = DatabaseContext.Create(_dbContextOptionsBuilder);
             var maps = await ctx.Referrals        
@@ -100,7 +100,7 @@ namespace Service.FeeShareEngine.Services
             };
         }
 
-        public async Task<AllFeeGroupsResponse> GetAllFeeShareGroups()
+        public async Task<AllFeeGroupsResponse> GetAllFeeShareGroups(PaginationRequest request)
         {
             await using var ctx = DatabaseContext.Create(_dbContextOptionsBuilder);
             var groups = await ctx.FeeShareGroups.ToListAsync();

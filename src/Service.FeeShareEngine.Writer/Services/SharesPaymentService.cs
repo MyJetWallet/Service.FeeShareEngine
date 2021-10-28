@@ -5,7 +5,9 @@ using System.Threading.Tasks;
 using Autofac;
 using Microsoft.Extensions.Logging;
 using MyJetWallet.Domain;
+using MyJetWallet.Domain.Assets;
 using MyJetWallet.Sdk.ServiceBus;
+using Service.AssetsDictionary.Client;
 using Service.ChangeBalanceGateway.Grpc;
 using Service.ChangeBalanceGateway.Grpc.Models;
 using Service.ClientWallets.Grpc;
@@ -19,7 +21,7 @@ using Service.Liquidity.Converter.Grpc;
 
 namespace Service.FeeShareEngine.Writer.Services
 {
-    public class FeePaymentService : IStartable
+    public class SharesPaymentService : IStartable
     {
         private readonly IConvertIndexPricesClient _convertPricesClient;
         private readonly ISpotChangeBalanceService _changeBalanceService;
@@ -29,11 +31,11 @@ namespace Service.FeeShareEngine.Writer.Services
         private DateTime _converterSettingsTimeStamp = DateTime.MinValue;
         private readonly IServiceBusPublisher<FeeShareEntity> _feeSharePublisher;
         private readonly IServiceBusPublisher<FeePaymentEntity> _feePaymentPublisher;
-        private readonly ILogger<FeePaymentService> _logger;
+        private readonly ILogger<SharesPaymentService> _logger;
         private readonly SettingsHelper _settingsHelper;
+        private readonly IAssetsDictionaryClient _assetsDictionary;
 
-
-        public FeePaymentService(IConvertIndexPricesClient convertPricesClient, ISpotChangeBalanceService changeBalanceService, ILiquidityConverterSettingsManager liquidityConverterSettings, IClientWalletService walletService, IServiceBusPublisher<FeeShareEntity> feeSharePublisher, ILogger<FeePaymentService> logger, IServiceBusPublisher<FeePaymentEntity> feePaymentPublisher, SettingsHelper settingsHelper)
+        public SharesPaymentService(IConvertIndexPricesClient convertPricesClient, ISpotChangeBalanceService changeBalanceService, ILiquidityConverterSettingsManager liquidityConverterSettings, IClientWalletService walletService, IServiceBusPublisher<FeeShareEntity> feeSharePublisher, ILogger<SharesPaymentService> logger, IServiceBusPublisher<FeePaymentEntity> feePaymentPublisher, SettingsHelper settingsHelper, IAssetsDictionaryClient assetsDictionary)
         {
             _convertPricesClient = convertPricesClient;
             _changeBalanceService = changeBalanceService;
@@ -43,58 +45,68 @@ namespace Service.FeeShareEngine.Writer.Services
             _logger = logger;
             _feePaymentPublisher = feePaymentPublisher;
             _settingsHelper = settingsHelper;
+            _assetsDictionary = assetsDictionary;
         }
 
-        public (decimal feeShare, decimal feeShareInUsd) CalculateFeeShare(SwapMessage swap)
+        public (decimal feeShareInNative, decimal feeShareInTarget) CalculateFeeShare(SwapMessage swap, FeeShareGroup feeShareGroup)
         {
-            var conversionRate = _convertPricesClient.GetConvertIndexPriceByPairAsync(swap.DifferenceAsset, "USD");
-            var sharePercent = Program.ReloadedSettings(t => t.FeeSharePercent).Invoke();
-            var feeShare = swap.DifferenceVolumeAbs * ((decimal)sharePercent / 100);
-            var feeShareInUsd = conversionRate.Price * feeShare;
-            return (feeShare, feeShareInUsd);
+            var conversionRate = _convertPricesClient.GetConvertIndexPriceByPairAsync(swap.DifferenceAsset, feeShareGroup.AssetId);
+            var sharePercent = feeShareGroup.FeePercent;
+            var feeShareInNative = swap.DifferenceVolumeAbs * (sharePercent / 100);
+            var feeShareInTarget = conversionRate.Price * feeShareInNative;
+            return (feeShareInNative, feeShareInTarget);
         }
-        
-        public async Task TransferToServiceWallet(FeeShareEntity share)
+
+        public async Task TransferSettlementPayment(ShareStatEntity entity)
         {
+            if (string.IsNullOrEmpty(entity.SettlementOperationId))
+                entity.SettlementOperationId = Guid.NewGuid().ToString("N")+"|FeeSettlementTransfer";
+            
             var converterSettings = GetConverterSettings();
+
+            var asset = _assetsDictionary.GetAssetById(new AssetIdentity
+            {
+                BrokerId = _settingsHelper.SettingsModel.FeeShareEngineBrokerId,
+                Symbol = entity.AssetId
+            });
             var request = new FeeTransferRequest
             {
-                TransactionId = share.FeeTransferOperationId,
+                TransactionId = entity.SettlementOperationId,
                 ClientId = converterSettings.BrokerAccountId,
                 FromWalletId = converterSettings.BrokerWalletId,
                 ToWalletId = _settingsHelper.SettingsModel.FeeShareEngineWalletId,
-                Amount = (double)Math.Round(share.FeeShareAmountInTargetAsset, 2),
-                AssetSymbol = "USD",
-                Comment = "FeeShare transfer to service wallet",
+                Amount = (double)Math.Round(entity.Amount, asset.Accuracy, MidpointRounding.ToNegativeInfinity),
+                AssetSymbol = entity.AssetId,
+                Comment = "FeeShare settlement transfer to service wallet",
                 BrokerId = converterSettings.BrokerId,
                 RequestSource = "FeeShareEngine"
             };
             var result = await _changeBalanceService.TransferFeeShareToServiceWalletAsync(request);
-
-            share.FeeShareWalletId = _settingsHelper.SettingsModel.FeeShareEngineWalletId;
-            share.ConverterWalletId = converterSettings.BrokerWalletId;
-            share.BrokerId = converterSettings.BrokerId;
-
             if (result.Result)
             {
-                share.Status = PaymentStatus.Reserved;
-                share.PaymentTimestamp = DateTime.UtcNow;
-                await _feeSharePublisher.PublishAsync(share);
+                entity.Status = SettlementStatus.Settled;
+                entity.PaymentTimestamp = DateTime.UtcNow;
             }
             else
             {
-                share.Status = PaymentStatus.FailedToReserve;
-                share.ErrorMessage = result.ErrorMessage;
-                _logger.LogError("When transferring fee share to service wallet. Transfer request {requestJson} Transfer error {error}", JsonSerializer.Serialize(request), result.ErrorMessage);
+                entity.Status = SettlementStatus.FailedToPay;
+                entity.ErrorMessage = result.ErrorMessage;
+                _logger.LogError("When transferring fee settlement to service wallet. Transfer request {requestJson} Transfer error {error}", JsonSerializer.Serialize(request), result.ErrorMessage);
             }
         }
-
+        
         public async Task PayFeeToReferrers(FeePaymentEntity payment)
         {
             var response = await _walletService.SearchClientsAsync(new SearchWalletsRequest()
             {
                 SearchText = payment.ReferrerClientId,
                 Take = 1
+            });
+            
+            var asset = _assetsDictionary.GetAssetById(new AssetIdentity
+            {
+                BrokerId = _settingsHelper.SettingsModel.FeeShareEngineBrokerId,
+                Symbol = payment.AssetId
             });
             
             var referrer = response.Clients?.FirstOrDefault();
@@ -119,8 +131,8 @@ namespace Service.FeeShareEngine.Writer.Services
                 ClientId = _settingsHelper.SettingsModel.FeeShareEngineClientId,
                 FromWalletId = _settingsHelper.SettingsModel.FeeShareEngineWalletId,
                 ToWalletId = walletId.WalletId,
-                Amount = (double)payment.Amount,
-                AssetSymbol = "USD",
+                Amount = (double)Math.Round(payment.Amount, asset.Accuracy, MidpointRounding.ToNegativeInfinity),
+                AssetSymbol = payment.AssetId,
                 Comment = "FeeShares payment to referrer",
                 BrokerId = referrer.BrokerId,
                 RequestSource = "FeeShareEngine"

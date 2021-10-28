@@ -21,7 +21,7 @@ namespace Service.FeeShareEngine.Writer.Services
         private readonly DbContextOptionsBuilder<DatabaseContext> _dbContextOptionsBuilder;
         private readonly ReferralMapCache _referralMap;
         private readonly IClientWalletService _walletService;
-        private readonly FeePaymentService _paymentService;
+        private readonly SharesPaymentService _paymentService;
         private readonly IServiceBusPublisher<FeeShareEntity> _feeSharePublisher;
         private readonly Dictionary<string, ClientContext> _clientContexts = new();
         public FeeShareWriter(
@@ -30,7 +30,7 @@ namespace Service.FeeShareEngine.Writer.Services
             ISubscriber<IReadOnlyList<SwapMessage>> subscriber, 
             ReferralMapCache referralMap, 
             IClientWalletService walletService,
-            FeePaymentService paymentService, 
+            SharesPaymentService paymentService, 
             IServiceBusPublisher<FeeShareEntity> feeSharePublisher)
         {
             _logger = logger;
@@ -52,21 +52,22 @@ namespace Service.FeeShareEngine.Writer.Services
                 if(string.IsNullOrEmpty(clientContext?.ReferrerClientId))
                     continue;
 
-                var (feeShareAmount, feeShareInUsd) = _paymentService.CalculateFeeShare(swap);
+                var (feeShareAmountInNative, feeShareInTarget) = _paymentService.CalculateFeeShare(swap, clientContext.FeeShareGroup);
                 
                 var feeShare = new FeeShareEntity
                 {
                     ReferrerClientId = clientContext.ReferrerClientId,
-                    FeeShareAmountInTargetAsset = feeShareInUsd,
+                    FeeShareAmountInTargetAsset = feeShareInTarget,
                     TimeStamp = DateTime.UtcNow,
                     OperationId = swap.MessageId,
                     FeeTransferOperationId = swap.MessageId + "|FeeTransferToService",
                     FeeAmount = swap.DifferenceVolumeAbs,
                     FeeAsset = swap.DifferenceAsset,
-                    FeeShareAmountInFeeAsset = feeShareAmount,
-                    Status = PaymentStatus.New
+                    FeeShareAmountInFeeAsset = feeShareAmountInNative,
+                    Status = PaymentStatus.New,
+                    FeeShareAsset = clientContext.FeeShareGroup.AssetId,
+                    FeeToTargetConversionRate = feeShareInTarget/feeShareAmountInNative
                 }; 
-                await _paymentService.TransferToServiceWallet(feeShare);
                 feeShares.Add(feeShare);
             }
 
@@ -95,8 +96,8 @@ namespace Service.FeeShareEngine.Writer.Services
                 return null;
             }
 
-            var referrer = await _referralMap.GetReferrerId(firstClient.ClientId);
-            context = new ClientContext(firstClient.ClientId, walletId, firstClient.BrokerId, referrer);
+            var (referrer, feeGroup) = await _referralMap.GetReferrerId(firstClient.ClientId);
+            context = new ClientContext(firstClient.ClientId, walletId, firstClient.BrokerId, referrer, feeGroup);
             _clientContexts[walletId] = context;
 
             while (_clientContexts.Count > Program.Settings.MaxCachedEntities)
@@ -114,14 +115,16 @@ namespace Service.FeeShareEngine.Writer.Services
             public string BrokerId { get; set; }
             public string ReferrerClientId { get; set; }
             public DateTime TimeStamp { get; set; }
+            public FeeShareGroup FeeShareGroup { get; set; }
 
-            public ClientContext(string clientId, string walletId, string brokerId, string referrerClientId)
+            public ClientContext(string clientId, string walletId, string brokerId, string referrerClientId, FeeShareGroup feeShareGroup)
             {
                 ClientId = clientId;
                 WalletId = walletId;
                 BrokerId = brokerId;
                 ReferrerClientId = referrerClientId;
                 TimeStamp = DateTime.UtcNow;
+                FeeShareGroup = feeShareGroup;
             }
         }
     }

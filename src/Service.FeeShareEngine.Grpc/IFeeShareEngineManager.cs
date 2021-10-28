@@ -15,10 +15,10 @@ namespace Service.FeeShareEngine.Grpc
         Task<OperationResponse> DeleteReferralLink(DeleteReferralRequest request);
         
         [OperationContract]
-        Task<GetAllReferralMapsResponse> GetAllReferralMaps();
+        Task<GetAllReferralMapsResponse> GetAllReferralMaps(PaginationRequest request);
         
         [OperationContract]
-        Task<AllFeeGroupsResponse> GetAllFeeShareGroups();
+        Task<AllFeeGroupsResponse> GetAllFeeShareGroups(PaginationRequest request);
         
         [OperationContract]
         Task<OperationResponse> AddOrUpdateFeeShareGroup(FeeShareGroup request);

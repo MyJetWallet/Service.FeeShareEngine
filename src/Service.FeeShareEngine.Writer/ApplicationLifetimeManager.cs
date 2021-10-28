@@ -14,9 +14,9 @@ namespace Service.FeeShareEngine.Writer
         private readonly FeeShareWriter _feeShareWriter;
         private readonly FeePaymentWriter _feePaymentWriter;
         private readonly MyNoSqlClientLifeTime _myNoSqlClientLifeTime;
-        private FeePaymentService _feePaymentService;
+        private SharesPaymentService _sharesPaymentService;
 
-        public ApplicationLifetimeManager(IHostApplicationLifetime appLifetime, ILogger<ApplicationLifetimeManager> logger, ServiceBusLifeTime client, FeeShareWriter feeShareWriter, FeePaymentWriter feePaymentWriter, MyNoSqlClientLifeTime myNoSqlClientLifeTime, FeePaymentService feePaymentService)
+        public ApplicationLifetimeManager(IHostApplicationLifetime appLifetime, ILogger<ApplicationLifetimeManager> logger, ServiceBusLifeTime client, FeeShareWriter feeShareWriter, FeePaymentWriter feePaymentWriter, MyNoSqlClientLifeTime myNoSqlClientLifeTime, SharesPaymentService sharesPaymentService)
             : base(appLifetime)
         {
             _logger = logger;
@@ -24,7 +24,7 @@ namespace Service.FeeShareEngine.Writer
             _feeShareWriter = feeShareWriter;
             _feePaymentWriter = feePaymentWriter;
             _myNoSqlClientLifeTime = myNoSqlClientLifeTime;
-            _feePaymentService = feePaymentService;
+            _sharesPaymentService = sharesPaymentService;
         }
 
         protected override void OnStarted()
@@ -33,7 +33,7 @@ namespace Service.FeeShareEngine.Writer
             _client.Start();
             _feePaymentWriter.Start();
             _myNoSqlClientLifeTime.Start();
-            _feePaymentService.Start();
+            _sharesPaymentService.Start();
         }
 
         protected override void OnStopping()

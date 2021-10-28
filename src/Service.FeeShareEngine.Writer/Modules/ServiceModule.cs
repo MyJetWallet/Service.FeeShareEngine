@@ -2,6 +2,7 @@
 using MyJetWallet.Sdk.NoSql;
 using MyJetWallet.Sdk.ServiceBus;
 using MyServiceBus.Abstractions;
+using Service.AssetsDictionary.Client;
 using Service.ChangeBalanceGateway.Client;
 using Service.ClientWallets.Client;
 using Service.FeeShareEngine.Domain.Models.Models;
@@ -28,7 +29,7 @@ namespace Service.FeeShareEngine.Writer.Modules
             builder.RegisterSpotChangeBalanceGatewayClient(Program.Settings.ChangeBalanceGatewayGrpcServiceUrl);
             builder.RegisterClientWalletsClientsWithoutCache(Program.Settings.ClientWalletsGrpcServiceUrl);
             builder.RegisterConvertIndexPricesClient(myNoSqlClient);
-            
+            builder.RegisterAssetsDictionaryClients(myNoSqlClient);
             builder
                 .RegisterType<ReferralMapCache>()
                 .AsSelf()
@@ -46,7 +47,7 @@ namespace Service.FeeShareEngine.Writer.Modules
                 .SingleInstance();
             
             builder
-                .RegisterType<FeePaymentService>()
+                .RegisterType<SharesPaymentService>()
                 .AsSelf()
                 .SingleInstance();
 

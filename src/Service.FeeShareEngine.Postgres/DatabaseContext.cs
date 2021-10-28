@@ -82,7 +82,7 @@ namespace Service.FeeShareEngine.Postgres
             modelBuilder.Entity<FeePaymentEntity>().Property(e => e.Amount);
             modelBuilder.Entity<FeePaymentEntity>().Property(e => e.ReferrerClientId).HasMaxLength(256);
             modelBuilder.Entity<FeePaymentEntity>().Property(e => e.CalculationTimestamp);
-            modelBuilder.Entity<FeePaymentEntity>().Property(e => e.PaymentTimestamp);
+            modelBuilder.Entity<FeePaymentEntity>().Property(e => e.PaymentTimestamp).HasDefaultValue(DateTime.MinValue);
             modelBuilder.Entity<FeePaymentEntity>().Property(e => e.PeriodFrom);
             modelBuilder.Entity<FeePaymentEntity>().Property(e => e.PeriodTo);
             
@@ -110,6 +110,7 @@ namespace Service.FeeShareEngine.Postgres
             modelBuilder.Entity<ShareStatEntity>().Property(e => e.PeriodTo);
             modelBuilder.Entity<ShareStatEntity>().Property(e => e.CalculationTimestamp);
             modelBuilder.Entity<ShareStatEntity>().Property(e => e.Amount);
+            modelBuilder.Entity<ShareStatEntity>().Property(e => e.PaymentTimestamp).HasDefaultValue(DateTime.MinValue);
         }
 
         private void SetFeeGroupsEntity(ModelBuilder modelBuilder)
@@ -128,7 +129,7 @@ namespace Service.FeeShareEngine.Postgres
         public async Task<int> UpsetAsync(IEnumerable<FeePaymentEntity> entities)
         {
             var result = await FeePayments.UpsertRange(entities)
-                .On(e => new {e.ReferrerClientId, e.PeriodFrom})
+                .On(e => new {e.ReferrerClientId, e.PeriodFrom, e.PeriodTo, e.AssetId})
                 .AllowIdentityMatch()
                 .RunAsync();
             return result;
@@ -143,6 +144,12 @@ namespace Service.FeeShareEngine.Postgres
         public async Task<int> UpsetAsync(IEnumerable<FeeShareGroup> entities)
         {
             var result = await FeeShareGroups.UpsertRange(entities).AllowIdentityMatch().RunAsync();
+            return result;
+        }
+        
+        public async Task<int> UpsetAsync(IEnumerable<ShareStatEntity> entities)
+        {
+            var result = await ShareStatistics.UpsertRange(entities).AllowIdentityMatch().RunAsync();
             return result;
         }
         

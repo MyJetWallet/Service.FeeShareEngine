@@ -13,6 +13,10 @@ namespace Service.FeeShareEngine.Domain.Models.Models
         [DataMember(Order = 5)]public string SettlementOperationId { get; set; }
         [DataMember(Order = 6)]public string AssetId { get; set; }
         [DataMember(Order = 7)]public SettlementStatus Status { get; set; }
+        [DataMember(Order = 8)]public DateTime PaymentTimestamp { get; set; }
+        [DataMember(Order = 9)]public string ErrorMessage { get; set; }
+
+
 
     }
 }
