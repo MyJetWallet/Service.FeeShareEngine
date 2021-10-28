@@ -1,9 +1,9 @@
 DO $$
 BEGIN
     INSERT INTO feeshares.fee_payments ("PeriodFrom", "PeriodTo","ReferrerClientId", "Amount", "CalculationTimestamp", "Status")
-        SELECT '${PeriodFrom}', '${PeriodTo}', "ReferrerClientId", SUM("FeeShareAmountInTargetAsset"), current_timestamp,  0 
+        SELECT '${PeriodFrom}', '${PeriodTo}', "ReferrerClientId", SUM("FeeShareAmountInTargetAsset"), current_timestamp,  0
         FROM feeshares.fee_shares 
-        WHERE "PaymentTimestamp" > '${PeriodFrom}' AND "PaymentTimestamp" <= '${PeriodTo}' 
+        WHERE "TimeStamp" > '${PeriodFrom}' AND "TimeStamp" <= '${PeriodTo}' 
         GROUP BY "ReferrerClientId", "FeeShareAsset"
     ON CONFLICT ("PeriodFrom","PeriodTo","ReferrerClientId", "AssetId") DO UPDATE SET ("Amount", "CalculationTimestamp") = (excluded."Amount", excluded."CalculationTimestamp");
 

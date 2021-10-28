@@ -171,9 +171,9 @@ namespace Service.FeeShareEngine.Postgres
                  
                  scriptBody = scriptBody.Replace("${PeriodTo}", periodToString);
                  
-                logger.LogInformation($"ExecPaidAsync start with date from: {periodFromString} and date to: {periodToString}");
+                logger.LogInformation($"SumShares start with date from: {periodFromString} and date to: {periodToString}");
                 await Database.ExecuteSqlRawAsync(scriptBody);
-                logger.LogInformation($"ExecPaidAsync finish with date from: {periodFromString} and date to: {periodToString}");
+                logger.LogInformation($"SumShares finish with date from: {periodFromString} and date to: {periodToString}");
             }
             catch (Exception ex)
             {
