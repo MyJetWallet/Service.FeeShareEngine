@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -92,8 +93,15 @@ namespace Service.FeeShareEngine.Services
         public async Task<GetAllReferralMapsResponse> GetAllReferralMaps(PaginationRequest request)
         {
             await using var ctx = DatabaseContext.Create(_dbContextOptionsBuilder);
-            var maps = await ctx.Referrals        
-                .ToListAsync();
+            var maps = string.IsNullOrWhiteSpace(request.SearchText)
+                ? await ctx.Referrals.Skip(request.Skip).Take(request.Take)
+                    .ToListAsync()
+                : await ctx.Referrals
+                    .Where(t => t.ClientId.Contains(request.SearchText) ||
+                                t.ReferrerClientId.Contains(request.SearchText) ||
+                                t.FeeShareGroupId.Contains(request.SearchText))
+                    .Skip(request.Skip).Take(request.Take)
+                    .ToListAsync();
             return new GetAllReferralMapsResponse()
             {
                 Referrals = maps
@@ -103,7 +111,7 @@ namespace Service.FeeShareEngine.Services
         public async Task<AllFeeGroupsResponse> GetAllFeeShareGroups(PaginationRequest request)
         {
             await using var ctx = DatabaseContext.Create(_dbContextOptionsBuilder);
-            var groups = await ctx.FeeShareGroups.ToListAsync();
+            var groups = await ctx.FeeShareGroups.Skip(request.Skip).Take(request.Take).ToListAsync();
             return new AllFeeGroupsResponse
             {
                 Groups = groups

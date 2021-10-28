@@ -24,5 +24,7 @@ namespace Service.FeeShareEngine.Domain.Models.Models
         [DataMember(Order = 14)] public string ErrorMessage { get; set; }
         [DataMember(Order = 15)] public string FeeShareAsset { get; set; }
         [DataMember(Order = 16)] public decimal FeeToTargetConversionRate { get; set; }
+        [DataMember(Order = 17)] public string ReferralClientId { get; set; }
+
     }
 }

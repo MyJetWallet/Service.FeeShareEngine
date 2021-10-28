@@ -56,6 +56,7 @@ namespace Service.FeeShareEngine.Writer.Services
                 
                 var feeShare = new FeeShareEntity
                 {
+                    ReferralClientId = swap.AccountId1,
                     ReferrerClientId = clientContext.ReferrerClientId,
                     FeeShareAmountInTargetAsset = feeShareInTarget,
                     TimeStamp = DateTime.UtcNow,
