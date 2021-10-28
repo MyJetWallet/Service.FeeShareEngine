@@ -60,7 +60,7 @@ namespace Service.FeeShareEngine.Writer.Services
         public async Task TransferSettlementPayment(ShareStatEntity entity)
         {
             if (string.IsNullOrEmpty(entity.SettlementOperationId))
-                entity.SettlementOperationId = Guid.NewGuid().ToString("N")+"|FeeSettlementTransfer";
+                entity.SettlementOperationId = Guid.NewGuid().ToString("N");
             
             var converterSettings = GetConverterSettings();
 
@@ -97,6 +97,9 @@ namespace Service.FeeShareEngine.Writer.Services
         
         public async Task PayFeeToReferrers(FeePaymentEntity payment)
         {
+            if (string.IsNullOrEmpty(payment.PaymentOperationId))
+                payment.PaymentOperationId = Guid.NewGuid().ToString("N");
+            
             var response = await _walletService.SearchClientsAsync(new SearchWalletsRequest()
             {
                 SearchText = payment.ReferrerClientId,

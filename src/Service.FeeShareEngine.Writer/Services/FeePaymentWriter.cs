@@ -89,7 +89,7 @@ namespace Service.FeeShareEngine.Writer.Services
                             { stat.AssetId, stat.PeriodFrom, stat.PeriodTo }
                     where stat.Status == SettlementStatus.Settled
                     select payment;
-
+                
                 payments = await query.Take(100).ToListAsync();
 
                 foreach (var payment in payments)
