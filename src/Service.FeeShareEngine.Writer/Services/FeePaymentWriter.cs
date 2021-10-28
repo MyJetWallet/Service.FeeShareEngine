@@ -38,13 +38,13 @@ namespace Service.FeeShareEngine.Writer.Services
         
         private async Task DoTimer()
         {
-            await CalculateFeePayments();
             await ExecuteFeePayments();
 
             var (periodStart, periodEnd) = PeriodHelper.GetPeriod(DateTime.UtcNow, _periodType);
 
             if (_paidPeriodDate < periodEnd)
-            {
+            {            
+                await CalculateFeePayments();
                 await ExecuteFeeSettlements(periodEnd);
                 await UpdateLastPaidPeriod();
             }
