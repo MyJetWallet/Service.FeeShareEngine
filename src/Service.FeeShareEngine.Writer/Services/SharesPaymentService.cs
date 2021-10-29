@@ -141,7 +141,8 @@ namespace Service.FeeShareEngine.Writer.Services
                 RequestSource = "FeeShareEngine"
             };
             var result = await _changeBalanceService.PayFeeSharesToReferrerAsync(request);
-            
+            payment.ReferrerWalletId = walletId.WalletId;
+
             if (result.Result)
             {
                 payment.Status = PaymentStatus.Paid;

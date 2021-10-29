@@ -85,7 +85,8 @@ namespace Service.FeeShareEngine.Postgres
             modelBuilder.Entity<FeePaymentEntity>().Property(e => e.PaymentTimestamp).HasDefaultValue(DateTime.MinValue);
             modelBuilder.Entity<FeePaymentEntity>().Property(e => e.PeriodFrom);
             modelBuilder.Entity<FeePaymentEntity>().Property(e => e.PeriodTo);
-            
+            modelBuilder.Entity<FeePaymentEntity>().Property(e => e.ReferrerWalletId).HasMaxLength(256);
+
             modelBuilder.Entity<FeePaymentEntity>().HasIndex(e => e.ReferrerClientId);
             modelBuilder.Entity<FeePaymentEntity>().HasIndex(e => e.PeriodFrom);
             modelBuilder.Entity<FeePaymentEntity>().HasIndex(e => new {e.PeriodFrom, e.PeriodTo});
