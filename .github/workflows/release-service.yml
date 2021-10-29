@@ -87,7 +87,7 @@ jobs:
         password: ${{ secrets.ST_DOCKER_PASSWORD }}
         path: ./publish-writer
         registry: simpletrading.azurecr.io
-        repository: spot/myjetwallet.service.feeshareengine
+        repository: spot/myjetwallet.service.feeshareengine.writer
         tag_with_ref: true
         build_args: app_version=myjetwallet.service.feeshareengine.writer:${{ steps.extract_branch.outputs.branch }},app_compilation_date=${{ steps.current-time.outputs.formattedTime }}
 
