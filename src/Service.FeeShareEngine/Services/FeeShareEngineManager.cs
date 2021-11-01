@@ -41,8 +41,9 @@ namespace Service.FeeShareEngine.Services
                     };
                 }
                 await using var ctx = DatabaseContext.Create(_dbContextOptionsBuilder);
-                var feeShareGroup =
-                    await ctx.FeeShareGroups.FirstOrDefaultAsync(t => t.GroupId == request.FeeShareGroupId);
+                var feeShareGroup = string.IsNullOrWhiteSpace(request.FeeShareGroupId)
+                    ? await ctx.FeeShareGroups.FirstOrDefaultAsync(t => t.IsDefault)
+                    : await ctx.FeeShareGroups.FirstOrDefaultAsync(t => t.GroupId == request.FeeShareGroupId);
 
                 if (feeShareGroup == null)
                 {
