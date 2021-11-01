@@ -34,5 +34,8 @@ namespace Service.FeeShareEngine.Settings
         
         [YamlProperty("FeeShareEngine.MyNoSqlWriterUrl")]
         public string MyNoSqlWriterUrl { get; set; }
+        
+        [YamlProperty("FeeShareEngine.SpotServiceBusHostPort")]
+        public string SpotServiceBusHostPort { get; set; }
     }
 }

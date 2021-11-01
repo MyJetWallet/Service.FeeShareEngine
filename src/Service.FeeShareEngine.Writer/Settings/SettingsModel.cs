@@ -26,10 +26,6 @@ namespace Service.FeeShareEngine.Writer.Settings
         [YamlProperty("FeeShareEngine.MyNoSqlReaderHostPort")]
         public string MyNoSqlReaderHostPort { get; set; }
         
-        [YamlProperty("FeeShareEngine.FeeSharePercent")]
-        public int FeeSharePercent { get; set; }
-        
-        
         [YamlProperty("FeeShareEngine.MaxCachedEntities")]
         public int MaxCachedEntities { get; set; }
         

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using MyJetWallet.Sdk.ServiceBus;
 using MyNoSqlServer.Abstractions;
 using Service.FeeShareEngine.Domain.Models.Models;
 using Service.FeeShareEngine.Grpc;
@@ -18,11 +19,13 @@ namespace Service.FeeShareEngine.Services
         private readonly ILogger<FeeShareEngineManager> _logger;
         private readonly DbContextOptionsBuilder<DatabaseContext> _dbContextOptionsBuilder;
         private readonly IMyNoSqlServerDataWriter<FeeShareSettingsNoSqlEntity> _settingWriter;
-        public FeeShareEngineManager(ILogger<FeeShareEngineManager> logger, DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder, IMyNoSqlServerDataWriter<FeeShareSettingsNoSqlEntity> settingWriter)
+        private readonly IServiceBusPublisher<ReferralMapChangeMessage> _publisher;
+        public FeeShareEngineManager(ILogger<FeeShareEngineManager> logger, DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder, IMyNoSqlServerDataWriter<FeeShareSettingsNoSqlEntity> settingWriter, IServiceBusPublisher<ReferralMapChangeMessage> publisher)
         {
             _logger = logger;
             _dbContextOptionsBuilder = dbContextOptionsBuilder;
             _settingWriter = settingWriter;
+            _publisher = publisher;
         }
 
         public async Task<OperationResponse> AddReferralLink(AddReferralRequest request)
@@ -80,6 +83,10 @@ namespace Service.FeeShareEngine.Services
                 {
                     ctx.Referrals.Remove(entity);
                     await ctx.SaveChangesAsync();
+                    await _publisher.PublishAsync(new ReferralMapChangeMessage()
+                    {
+                        ClientId = entity.ClientId
+                    });
                 }
                 return new OperationResponse() { IsSuccess = true };
             }
@@ -130,6 +137,10 @@ namespace Service.FeeShareEngine.Services
                 {
                     request
                 });
+                await _publisher.PublishAsync(new ReferralMapChangeMessage()
+                {
+                    FeeShareGroupId = request.GroupId
+                });
                 return new OperationResponse() { IsSuccess = true };
             }
             catch (Exception e)
@@ -161,6 +172,10 @@ namespace Service.FeeShareEngine.Services
                 {
                     ctx.FeeShareGroups.Remove(entity);
                     await ctx.SaveChangesAsync();
+                    await _publisher.PublishAsync(new ReferralMapChangeMessage()
+                    {
+                        FeeShareGroupId = entity.GroupId
+                    });
                 }
 
                 return new OperationResponse() { IsSuccess = true };

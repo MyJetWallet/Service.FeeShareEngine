@@ -19,26 +19,20 @@ namespace Service.FeeShareEngine.Writer.Services
     {
         private readonly ILogger<FeeShareWriter> _logger;
         private readonly DbContextOptionsBuilder<DatabaseContext> _dbContextOptionsBuilder;
-        private readonly ReferralMapCache _referralMap;
-        private readonly IClientWalletService _walletService;
+        private readonly ClientContextManager _contextManager;
         private readonly SharesPaymentService _paymentService;
-        private readonly IServiceBusPublisher<FeeShareEntity> _feeSharePublisher;
-        private readonly Dictionary<string, ClientContext> _clientContexts = new();
         public FeeShareWriter(
             ILogger<FeeShareWriter> logger, 
             DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder,
             ISubscriber<IReadOnlyList<SwapMessage>> subscriber, 
-            ReferralMapCache referralMap, 
-            IClientWalletService walletService,
-            SharesPaymentService paymentService, 
-            IServiceBusPublisher<FeeShareEntity> feeSharePublisher)
+            ClientContextManager contextManager, 
+            SharesPaymentService paymentService
+            )
         {
             _logger = logger;
             _dbContextOptionsBuilder = dbContextOptionsBuilder;
-            _referralMap = referralMap;
-            _walletService = walletService;
+            _contextManager = contextManager;
             _paymentService = paymentService;
-            _feeSharePublisher = feeSharePublisher;
             subscriber.Subscribe(HandleEvents);
 
         }
@@ -48,7 +42,7 @@ namespace Service.FeeShareEngine.Writer.Services
             var feeShares = new List<FeeShareEntity>();
             foreach (var swap in swaps)
             {
-                var clientContext = await GetClientContext(swap.WalletId1);
+                var clientContext = await _contextManager.GetClientContext(swap.WalletId1);
                 if(string.IsNullOrEmpty(clientContext?.ReferrerClientId))
                     continue;
 
@@ -78,57 +72,5 @@ namespace Service.FeeShareEngine.Writer.Services
                 await ctx.UpsetAsync(feeShares);
             }
         }
-
-        private async ValueTask<ClientContext> GetClientContext(string walletId)
-        {
-            if (_clientContexts.TryGetValue(walletId, out var context))
-                return context;
-            
-            
-            var client = await _walletService.SearchClientsAsync(new SearchWalletsRequest()
-            {
-                SearchText = walletId,
-                Take = 1
-            });
-            var firstClient = client.Clients?.FirstOrDefault();
-            if (firstClient == null)
-            {
-                _logger.LogError("Cannot find client for walletId {walletId}", walletId);
-                return null;
-            }
-
-            var (referrer, feeGroup) = await _referralMap.GetReferrerId(firstClient.ClientId);
-            context = new ClientContext(firstClient.ClientId, walletId, firstClient.BrokerId, referrer, feeGroup);
-            _clientContexts[walletId] = context;
-
-            while (_clientContexts.Count > Program.Settings.MaxCachedEntities)
-            {
-                _clientContexts.Remove(_clientContexts.OrderBy(t => t.Value.TimeStamp).First().Key);
-            }
-            
-            return context;
-        }
-
-        private class ClientContext
-        {
-            public string ClientId { get; set; }
-            public string WalletId { get; set; }
-            public string BrokerId { get; set; }
-            public string ReferrerClientId { get; set; }
-            public DateTime TimeStamp { get; set; }
-            public FeeShareGroup FeeShareGroup { get; set; }
-
-            public ClientContext(string clientId, string walletId, string brokerId, string referrerClientId, FeeShareGroup feeShareGroup)
-            {
-                ClientId = clientId;
-                WalletId = walletId;
-                BrokerId = brokerId;
-                ReferrerClientId = referrerClientId;
-                TimeStamp = DateTime.UtcNow;
-                FeeShareGroup = feeShareGroup;
-            }
-        }
     }
-    
-     
 }

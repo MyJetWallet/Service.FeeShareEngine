@@ -20,9 +20,9 @@ namespace Service.FeeShareEngine.Writer.Modules
         protected override void Load(ContainerBuilder builder)
         {
             var serviceBusClient = builder.RegisterMyServiceBusTcpClient(Program.ReloadedSettings(e => e.SpotServiceBusHostPort), Program.LogFactory);
-            builder.RegisterMyServiceBusSubscriberBatch<SwapMessage>(serviceBusClient, SwapMessage.TopicName, "FeeShareEngine-Writer", TopicQueueType.Permanent);
+            builder.RegisterMyServiceBusSubscriberBatch<SwapMessage>(serviceBusClient, SwapMessage.TopicName, "FeeShareEngine-Writer", TopicQueueType.PermanentWithSingleConnection);
             builder.RegisterMyServiceBusPublisher<FeePaymentEntity>(serviceBusClient, FeePaymentEntity.TopicName, true);
-            builder.RegisterMyServiceBusPublisher<FeeShareEntity>(serviceBusClient, FeeShareEntity.TopicName, true);
+            builder.RegisterMyServiceBusSubscriberSingle<ReferralMapChangeMessage>(serviceBusClient, ReferralMapChangeMessage.TopicName, "FeeShareEngine-Writer", TopicQueueType.PermanentWithSingleConnection);
 
             var myNoSqlClient = builder.CreateNoSqlClient(Program.ReloadedSettings(t => t.MyNoSqlReaderHostPort));
             builder.RegisterLiquidityConverterManagerClient(Program.Settings.LiquidityConverterGrpcServiceUrl);
@@ -31,7 +31,7 @@ namespace Service.FeeShareEngine.Writer.Modules
             builder.RegisterConvertIndexPricesClient(myNoSqlClient);
             builder.RegisterAssetsDictionaryClients(myNoSqlClient);
             builder
-                .RegisterType<ReferralMapCache>()
+                .RegisterType<ClientContextManager>()
                 .AsSelf()
                 .SingleInstance();
             

@@ -29,19 +29,17 @@ namespace Service.FeeShareEngine.Writer.Services
         private readonly IClientWalletService _walletService;
         private LiquidityConverterSettings _converterSettings;
         private DateTime _converterSettingsTimeStamp = DateTime.MinValue;
-        private readonly IServiceBusPublisher<FeeShareEntity> _feeSharePublisher;
         private readonly IServiceBusPublisher<FeePaymentEntity> _feePaymentPublisher;
         private readonly ILogger<SharesPaymentService> _logger;
         private readonly SettingsHelper _settingsHelper;
         private readonly IAssetsDictionaryClient _assetsDictionary;
 
-        public SharesPaymentService(IConvertIndexPricesClient convertPricesClient, ISpotChangeBalanceService changeBalanceService, ILiquidityConverterSettingsManager liquidityConverterSettings, IClientWalletService walletService, IServiceBusPublisher<FeeShareEntity> feeSharePublisher, ILogger<SharesPaymentService> logger, IServiceBusPublisher<FeePaymentEntity> feePaymentPublisher, SettingsHelper settingsHelper, IAssetsDictionaryClient assetsDictionary)
+        public SharesPaymentService(IConvertIndexPricesClient convertPricesClient, ISpotChangeBalanceService changeBalanceService, ILiquidityConverterSettingsManager liquidityConverterSettings, IClientWalletService walletService, ILogger<SharesPaymentService> logger, IServiceBusPublisher<FeePaymentEntity> feePaymentPublisher, SettingsHelper settingsHelper, IAssetsDictionaryClient assetsDictionary)
         {
             _convertPricesClient = convertPricesClient;
             _changeBalanceService = changeBalanceService;
             _liquidityConverterSettings = liquidityConverterSettings;
             _walletService = walletService;
-            _feeSharePublisher = feeSharePublisher;
             _logger = logger;
             _feePaymentPublisher = feePaymentPublisher;
             _settingsHelper = settingsHelper;
