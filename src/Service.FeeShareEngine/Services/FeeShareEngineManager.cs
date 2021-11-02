@@ -59,7 +59,7 @@ namespace Service.FeeShareEngine.Services
                     {
                         ReferrerClientId = request.ReferrerClientId,
                         ClientId = request.ClientId,
-                        FeeShareGroupId = request.FeeShareGroupId
+                        FeeShareGroupId = feeShareGroup.GroupId
                     }
                 });
                 return new OperationResponse() { IsSuccess = true };
