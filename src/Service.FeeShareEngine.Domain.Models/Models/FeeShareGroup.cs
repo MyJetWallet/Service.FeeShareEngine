@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.Serialization;
 
 namespace Service.FeeShareEngine.Domain.Models.Models
@@ -9,5 +10,6 @@ namespace Service.FeeShareEngine.Domain.Models.Models
         [DataMember(Order = 2)]public string AssetId { get; set; }
         [DataMember(Order = 3)]public decimal FeePercent { get; set; }
         [DataMember(Order = 4)]public bool IsDefault  { get; set; }
+        [DataMember(Order = 5)]public DateTime LastTs  { get; set; }
     }
 }
