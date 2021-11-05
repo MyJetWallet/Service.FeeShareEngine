@@ -127,7 +127,7 @@ namespace Service.FeeShareEngine.Postgres
             modelBuilder.Entity<FeeShareGroup>().ToTable(FeeShareGroupsTableName);
             modelBuilder.Entity<FeeShareGroup>().HasKey(e => e.GroupId);
 
-            modelBuilder.Entity<FeePaymentEntity>().HasIndex(e => e.LastTs);
+            modelBuilder.Entity<FeeShareGroup>().HasIndex(e => e.LastTs);
         }
 
         
