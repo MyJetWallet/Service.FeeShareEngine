@@ -73,6 +73,8 @@ namespace Service.FeeShareEngine.Postgres
             modelBuilder.Entity<FeeShareEntity>().Property(e => e.TimeStamp);
             modelBuilder.Entity<FeeShareEntity>().HasIndex(e => new {e.ReferrerClientId, e.TimeStamp});
             modelBuilder.Entity<FeeShareEntity>().HasIndex(e => e.ReferrerClientId);
+
+            modelBuilder.Entity<FeeShareEntity>().HasIndex(e => e.LastTs);
         }
         
         private void SetFeePaymentEntity(ModelBuilder modelBuilder)
@@ -92,6 +94,8 @@ namespace Service.FeeShareEngine.Postgres
             modelBuilder.Entity<FeePaymentEntity>().HasIndex(e => new {e.PeriodFrom, e.PeriodTo});
             modelBuilder.Entity<FeePaymentEntity>().HasIndex(e => e.Status);
 
+            modelBuilder.Entity<FeePaymentEntity>().HasIndex(e => e.LastTs);
+
 
         }
 
@@ -101,6 +105,8 @@ namespace Service.FeeShareEngine.Postgres
             modelBuilder.Entity<ReferralMapEntity>().HasKey(e => e.ClientId);
             modelBuilder.Entity<ReferralMapEntity>().Property(e => e.ClientId).HasMaxLength(256);
             modelBuilder.Entity<ReferralMapEntity>().Property(e => e.ReferrerClientId).HasMaxLength(256);
+
+            modelBuilder.Entity<ReferralMapEntity>().HasIndex(e => e.LastTs);
         }
 
         private void SetShareStatEntity(ModelBuilder modelBuilder)
@@ -112,12 +118,16 @@ namespace Service.FeeShareEngine.Postgres
             modelBuilder.Entity<ShareStatEntity>().Property(e => e.CalculationTimestamp);
             modelBuilder.Entity<ShareStatEntity>().Property(e => e.Amount);
             modelBuilder.Entity<ShareStatEntity>().Property(e => e.PaymentTimestamp).HasDefaultValue(DateTime.MinValue);
+
+            modelBuilder.Entity<ShareStatEntity>().HasIndex(e => e.LastTs);
         }
 
         private void SetFeeGroupsEntity(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<FeeShareGroup>().ToTable(FeeShareGroupsTableName);
             modelBuilder.Entity<FeeShareGroup>().HasKey(e => e.GroupId);
+
+            modelBuilder.Entity<FeePaymentEntity>().HasIndex(e => e.LastTs);
         }
 
         
