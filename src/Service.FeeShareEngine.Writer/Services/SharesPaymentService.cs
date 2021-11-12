@@ -122,7 +122,7 @@ namespace Service.FeeShareEngine.Writer.Services
             var walletId = (await _walletService.GetWalletsByClient(new JetClientIdentity()
             {
                 BrokerId = referrer.BrokerId,
-                BrandId = referrer.BrandId,
+                BrandId = Program.Settings.DefaultBrand,
                 ClientId = referrer.ClientId
             })).Wallets.First();
 

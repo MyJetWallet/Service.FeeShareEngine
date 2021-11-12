@@ -52,5 +52,8 @@ namespace Service.FeeShareEngine.Writer.Settings
         
         [YamlProperty("FeeShareEngine.PeriodType")]
         public string PeriodType { get; set; }
+        
+        [YamlProperty("FeeShareEngine.DefaultBrand")]
+        public string DefaultBrand { get; set; }
     }
 }

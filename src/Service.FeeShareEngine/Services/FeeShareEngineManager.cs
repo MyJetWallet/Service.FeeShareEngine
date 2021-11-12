@@ -62,6 +62,10 @@ namespace Service.FeeShareEngine.Services
                         FeeShareGroupId = feeShareGroup.GroupId
                     }
                 });
+                await _publisher.PublishAsync(new ReferralMapChangeMessage()
+                {
+                    ClientId = request.ClientId
+                });
                 return new OperationResponse() { IsSuccess = true };
             }
             catch (Exception e)
