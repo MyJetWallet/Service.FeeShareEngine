@@ -70,9 +70,10 @@ namespace Service.FeeShareEngine.Postgres
             modelBuilder.Entity<FeeShareEntity>().Property(e => e.OperationId).HasMaxLength(512);
             modelBuilder.Entity<FeeShareEntity>().Property(e => e.FeeShareAmountInTargetAsset);
             modelBuilder.Entity<FeeShareEntity>().Property(e => e.ReferrerClientId).HasMaxLength(256);
-            modelBuilder.Entity<FeeShareEntity>().Property(e => e.TimeStamp);
+            modelBuilder.Entity<FeeShareEntity>().Property(e => e.TimeStamp).HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));;
             modelBuilder.Entity<FeeShareEntity>().HasIndex(e => new {e.ReferrerClientId, e.TimeStamp});
             modelBuilder.Entity<FeeShareEntity>().HasIndex(e => e.ReferrerClientId);
+            modelBuilder.Entity<FeeShareEntity>().Property(e=>e.LastTs).HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
 
             modelBuilder.Entity<FeeShareEntity>().HasIndex(e => e.LastTs);
         }
@@ -83,11 +84,13 @@ namespace Service.FeeShareEngine.Postgres
             modelBuilder.Entity<FeePaymentEntity>().HasKey(e => new { e.ReferrerClientId, e.PeriodFrom, e.PeriodTo, e.AssetId});
             modelBuilder.Entity<FeePaymentEntity>().Property(e => e.Amount);
             modelBuilder.Entity<FeePaymentEntity>().Property(e => e.ReferrerClientId).HasMaxLength(256);
-            modelBuilder.Entity<FeePaymentEntity>().Property(e => e.CalculationTimestamp);
-            modelBuilder.Entity<FeePaymentEntity>().Property(e => e.PaymentTimestamp).HasDefaultValue(DateTime.MinValue);
-            modelBuilder.Entity<FeePaymentEntity>().Property(e => e.PeriodFrom);
-            modelBuilder.Entity<FeePaymentEntity>().Property(e => e.PeriodTo);
+            modelBuilder.Entity<FeePaymentEntity>().Property(e => e.CalculationTimestamp).HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));;
+            modelBuilder.Entity<FeePaymentEntity>().Property(e => e.PaymentTimestamp).HasDefaultValue(DateTime.MinValue).HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+            modelBuilder.Entity<FeePaymentEntity>().Property(e => e.PeriodFrom).HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));;
+            modelBuilder.Entity<FeePaymentEntity>().Property(e => e.PeriodTo).HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));;
             modelBuilder.Entity<FeePaymentEntity>().Property(e => e.ReferrerWalletId).HasMaxLength(256);
+
+            modelBuilder.Entity<FeePaymentEntity>().Property(e=>e.LastTs).HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
 
             modelBuilder.Entity<FeePaymentEntity>().HasIndex(e => e.ReferrerClientId);
             modelBuilder.Entity<FeePaymentEntity>().HasIndex(e => e.PeriodFrom);
@@ -105,6 +108,7 @@ namespace Service.FeeShareEngine.Postgres
             modelBuilder.Entity<ReferralMapEntity>().HasKey(e => e.ClientId);
             modelBuilder.Entity<ReferralMapEntity>().Property(e => e.ClientId).HasMaxLength(256);
             modelBuilder.Entity<ReferralMapEntity>().Property(e => e.ReferrerClientId).HasMaxLength(256);
+            modelBuilder.Entity<ReferralMapEntity>().Property(e=>e.LastTs).HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
 
             modelBuilder.Entity<ReferralMapEntity>().HasIndex(e => e.LastTs);
         }
@@ -113,11 +117,12 @@ namespace Service.FeeShareEngine.Postgres
         {
             modelBuilder.Entity<ShareStatEntity>().ToTable(ShareStatisticsTableName);
             modelBuilder.Entity<ShareStatEntity>().HasKey(e => new {e.PeriodFrom, e.PeriodTo, e.AssetId});
-            modelBuilder.Entity<ShareStatEntity>().Property(e => e.PeriodFrom);
-            modelBuilder.Entity<ShareStatEntity>().Property(e => e.PeriodTo);
-            modelBuilder.Entity<ShareStatEntity>().Property(e => e.CalculationTimestamp);
+            modelBuilder.Entity<ShareStatEntity>().Property(e => e.PeriodFrom).HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));;
+            modelBuilder.Entity<ShareStatEntity>().Property(e => e.PeriodTo).HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));;
+            modelBuilder.Entity<ShareStatEntity>().Property(e => e.CalculationTimestamp).HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));;
             modelBuilder.Entity<ShareStatEntity>().Property(e => e.Amount);
-            modelBuilder.Entity<ShareStatEntity>().Property(e => e.PaymentTimestamp).HasDefaultValue(DateTime.MinValue);
+            modelBuilder.Entity<ShareStatEntity>().Property(e => e.PaymentTimestamp).HasDefaultValue(DateTime.MinValue).HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+            modelBuilder.Entity<ShareStatEntity>().Property(e=>e.LastTs).HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
 
             modelBuilder.Entity<ShareStatEntity>().HasIndex(e => e.LastTs);
         }

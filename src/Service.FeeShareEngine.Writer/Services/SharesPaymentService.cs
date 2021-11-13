@@ -67,13 +67,23 @@ namespace Service.FeeShareEngine.Writer.Services
                 BrokerId = _settingsHelper.SettingsModel.FeeShareEngineBrokerId,
                 Symbol = entity.AssetId
             });
+            
+            var amount = (double)Math.Round(entity.Amount, asset.Accuracy, MidpointRounding.ToZero);
+            
+            if (amount <= 0)
+            {
+                entity.Status = SettlementStatus.FailedToPay;
+                entity.ErrorMessage = "Amount too small";
+                return;
+            }
+            
             var request = new FeeTransferRequest
             {
                 TransactionId = entity.SettlementOperationId,
                 ClientId = converterSettings.BrokerAccountId,
                 FromWalletId = converterSettings.BrokerWalletId,
                 ToWalletId = _settingsHelper.SettingsModel.FeeShareEngineWalletId,
-                Amount = (double)Math.Round(entity.Amount, asset.Accuracy, MidpointRounding.ToZero),
+                Amount = amount,
                 AssetSymbol = entity.AssetId,
                 Comment = "FeeShare settlement transfer to service wallet",
                 BrokerId = converterSettings.BrokerId,
@@ -126,6 +136,15 @@ namespace Service.FeeShareEngine.Writer.Services
                 ClientId = referrer.ClientId
             })).Wallets.First();
 
+            var amount = (double)Math.Round(payment.Amount, asset.Accuracy, MidpointRounding.ToZero);
+            
+            if (amount <= 0)
+            {
+                payment.Status = PaymentStatus.FailedToPay;
+                payment.ErrorMessage = "Amount too small";
+                return;
+            }
+            
             var request = new FeeTransferRequest
             {
                 TransactionId = payment.PaymentOperationId,
