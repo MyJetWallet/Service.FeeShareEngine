@@ -4,14 +4,16 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Logging;
+using MyJetWallet.Sdk.Postgres;
 using MyJetWallet.Sdk.Service;
 using Service.FeeShareEngine.Domain.Models;
 using Service.FeeShareEngine.Domain.Models.Models;
 
 namespace Service.FeeShareEngine.Postgres
 {
-    public class DatabaseContext : DbContext
+    public class DatabaseContext : MyDbContext
     {
         public static DatabaseContext Create(DbContextOptionsBuilder<DatabaseContext> options)
         {
@@ -40,16 +42,6 @@ namespace Service.FeeShareEngine.Postgres
         public DatabaseContext(DbContextOptions options) : base(options)
         {
         }
-        public static ILoggerFactory LoggerFactory { get; set; }
-
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            if (LoggerFactory != null)
-            {
-                optionsBuilder.UseLoggerFactory(LoggerFactory).EnableSensitiveDataLogging();
-            }
-        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -70,10 +62,10 @@ namespace Service.FeeShareEngine.Postgres
             modelBuilder.Entity<FeeShareEntity>().Property(e => e.OperationId).HasMaxLength(512);
             modelBuilder.Entity<FeeShareEntity>().Property(e => e.FeeShareAmountInTargetAsset);
             modelBuilder.Entity<FeeShareEntity>().Property(e => e.ReferrerClientId).HasMaxLength(256);
-            modelBuilder.Entity<FeeShareEntity>().Property(e => e.TimeStamp).HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));;
+            modelBuilder.Entity<FeeShareEntity>().Property(e => e.TimeStamp);;
             modelBuilder.Entity<FeeShareEntity>().HasIndex(e => new {e.ReferrerClientId, e.TimeStamp});
             modelBuilder.Entity<FeeShareEntity>().HasIndex(e => e.ReferrerClientId);
-            modelBuilder.Entity<FeeShareEntity>().Property(e=>e.LastTs).HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+            modelBuilder.Entity<FeeShareEntity>().Property(e=>e.LastTs);
 
             modelBuilder.Entity<FeeShareEntity>().HasIndex(e => e.LastTs);
         }
@@ -108,7 +100,7 @@ namespace Service.FeeShareEngine.Postgres
             modelBuilder.Entity<ReferralMapEntity>().HasKey(e => e.ClientId);
             modelBuilder.Entity<ReferralMapEntity>().Property(e => e.ClientId).HasMaxLength(256);
             modelBuilder.Entity<ReferralMapEntity>().Property(e => e.ReferrerClientId).HasMaxLength(256);
-            modelBuilder.Entity<ReferralMapEntity>().Property(e=>e.LastTs).HasConversion(v => v, v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+            modelBuilder.Entity<ReferralMapEntity>().Property(e=>e.LastTs);
 
             modelBuilder.Entity<ReferralMapEntity>().HasIndex(e => e.LastTs);
         }
@@ -134,7 +126,6 @@ namespace Service.FeeShareEngine.Postgres
 
             modelBuilder.Entity<FeeShareGroup>().HasIndex(e => e.LastTs);
         }
-
         
         public async Task<int> UpsetAsync(IEnumerable<FeeShareEntity> entities)
         {
