@@ -24,10 +24,14 @@ namespace Service.FeeShareEngine.Services
         {
             await using var ctx = DatabaseContext.Create(_dbContextOptionsBuilder);
             var stats = string.IsNullOrWhiteSpace(request.SearchText)
-                ? await ctx.ShareStatistics.Skip(request.Skip).Take(request.Take).ToListAsync()
+                ? await ctx.ShareStatistics
+                    .OrderByDescending(t=>t.PeriodFrom)
+                    .Skip(request.Skip).Take(request.Take)
+                    .ToListAsync()
                 : await ctx.ShareStatistics
                     .Where(t => t.AssetId.Contains(request.SearchText) ||
                                 t.SettlementOperationId.Contains(request.SearchText))
+                    .OrderByDescending(t=>t.PeriodFrom)
                     .Skip(request.Skip).Take(request.Take)
                     .ToListAsync();
 
@@ -42,12 +46,17 @@ namespace Service.FeeShareEngine.Services
         {
             await using var ctx = DatabaseContext.Create(_dbContextOptionsBuilder);
             var payments = string.IsNullOrWhiteSpace(request.SearchText)
-                ? await ctx.FeePayments.Skip(request.Skip).Take(request.Take).ToListAsync()
+                ? await ctx.FeePayments
+                    .OrderByDescending(t=>t.PeriodFrom)
+                    .Skip(request.Skip).Take(request.Take)
+                    .ToListAsync()
                 : await ctx.FeePayments
                     .Where(t => t.AssetId.Contains(request.SearchText) ||
                                 t.ReferrerClientId.Contains(request.SearchText) ||
                                 t.PaymentOperationId.Contains(request.SearchText))
-                    .Skip(request.Skip).Take(request.Take).ToListAsync();
+                    .OrderByDescending(t=>t.PeriodFrom)
+                    .Skip(request.Skip).Take(request.Take)
+                    .ToListAsync();
             return new GetAllFeePaymentsResponse()
             {
                 FeePayments = payments
@@ -58,12 +67,17 @@ namespace Service.FeeShareEngine.Services
         {
             await using var ctx = DatabaseContext.Create(_dbContextOptionsBuilder);
             var shares = string.IsNullOrWhiteSpace(request.SearchText)
-                ? await ctx.FeeShares.Skip(request.Skip).Take(request.Take).ToListAsync()
+                ? await ctx.FeeShares
+                    .OrderByDescending(t=>t.TimeStamp)
+                    .Skip(request.Skip).Take(request.Take)
+                    .ToListAsync()
                 : await ctx.FeeShares
                     .Where(t => t.ReferrerClientId.Contains(request.SearchText) ||
                                 t.OperationId.Contains(request.SearchText) ||
                                 t.ReferralClientId.Contains(request.SearchText))
-                    .Skip(request.Skip).Take(request.Take).ToListAsync();
+                    .OrderByDescending(t=>t.TimeStamp)
+                    .Skip(request.Skip).Take(request.Take)
+                    .ToListAsync();
             
             return new GetAllFeeSharesResponse()
             {
