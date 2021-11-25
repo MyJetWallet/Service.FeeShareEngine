@@ -16,16 +16,10 @@ namespace Service.FeeShareEngine.Domain.Models.Models
         [DataMember(Order = 6)] public DateTime TimeStamp { get; set; }
         [DataMember(Order = 7)] public string OperationId { get; set; }
         [DataMember(Order = 8)] public string FeeTransferOperationId { get; set; }
-        [DataMember(Order = 9)] public DateTime PaymentTimestamp { get; set; }
         [DataMember(Order = 10)] public PaymentStatus Status { get; set; }
-        [DataMember(Order = 11)] public string ConverterWalletId { get; set; }
-        [DataMember(Order = 12)] public string FeeShareWalletId { get; set; }
-        [DataMember(Order = 13)] public string BrokerId { get; set; }
-        [DataMember(Order = 14)] public string ErrorMessage { get; set; }
         [DataMember(Order = 15)] public string FeeShareAsset { get; set; }
         [DataMember(Order = 16)] public decimal FeeToTargetConversionRate { get; set; }
         [DataMember(Order = 17)] public string ReferralClientId { get; set; }
         [DataMember(Order = 18)] public DateTime LastTs { get; set; }
-
     }
 }
