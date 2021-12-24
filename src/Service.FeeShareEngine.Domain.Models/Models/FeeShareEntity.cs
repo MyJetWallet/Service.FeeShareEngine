@@ -21,5 +21,9 @@ namespace Service.FeeShareEngine.Domain.Models.Models
         [DataMember(Order = 16)] public decimal FeeToTargetConversionRate { get; set; }
         [DataMember(Order = 17)] public string ReferralClientId { get; set; }
         [DataMember(Order = 18)] public DateTime LastTs { get; set; }
+        
+        [DataMember(Order = 19)] public decimal FeeAssetIndexPrice { get; set; }
+        [DataMember(Order = 20)] public decimal TargetAssetIndexPrice { get; set; }
+
     }
 }

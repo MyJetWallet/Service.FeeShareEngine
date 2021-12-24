@@ -11,6 +11,7 @@ using Service.ClientWallets.Grpc.Models;
 using Service.FeeShareEngine.Domain.Models;
 using Service.FeeShareEngine.Domain.Models.Models;
 using Service.FeeShareEngine.Postgres;
+using Service.IndexPrices.Client;
 using Service.Liquidity.Converter.Domain.Models;
 
 namespace Service.FeeShareEngine.Writer.Services
@@ -21,18 +22,19 @@ namespace Service.FeeShareEngine.Writer.Services
         private readonly DbContextOptionsBuilder<DatabaseContext> _dbContextOptionsBuilder;
         private readonly ClientContextManager _contextManager;
         private readonly SharesPaymentService _paymentService;
+        private readonly IIndexPricesClient _indexPrices;
         public FeeShareWriter(
             ILogger<FeeShareWriter> logger, 
             DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder,
             ISubscriber<IReadOnlyList<SwapMessage>> subscriber, 
             ClientContextManager contextManager, 
-            SharesPaymentService paymentService
-            )
+            SharesPaymentService paymentService, IIndexPricesClient indexPrices)
         {
             _logger = logger;
             _dbContextOptionsBuilder = dbContextOptionsBuilder;
             _contextManager = contextManager;
             _paymentService = paymentService;
+            _indexPrices = indexPrices;
             subscriber.Subscribe(HandleEvents);
 
         }
@@ -61,7 +63,9 @@ namespace Service.FeeShareEngine.Writer.Services
                     FeeShareAmountInFeeAsset = feeShareAmountInNative,
                     Status = PaymentStatus.New,
                     FeeShareAsset = clientContext.FeeShareGroup.AssetId,
-                    FeeToTargetConversionRate = feeShareInTarget/feeShareAmountInNative
+                    FeeToTargetConversionRate = feeShareInTarget/feeShareAmountInNative,
+                    FeeAssetIndexPrice = _indexPrices.GetIndexPriceByAssetAsync(swap.DifferenceAsset).UsdPrice,
+                    TargetAssetIndexPrice = _indexPrices.GetIndexPriceByAssetAsync(clientContext.FeeShareGroup.AssetId).UsdPrice
                 }; 
                 feeShares.Add(feeShare);
             }

@@ -29,6 +29,7 @@ namespace Service.FeeShareEngine.Writer.Modules
             builder.RegisterSpotChangeBalanceGatewayClient(Program.Settings.ChangeBalanceGatewayGrpcServiceUrl);
             builder.RegisterClientWalletsClientsWithoutCache(Program.Settings.ClientWalletsGrpcServiceUrl);
             builder.RegisterConvertIndexPricesClient(myNoSqlClient);
+            builder.RegisterIndexPricesClient(myNoSqlClient);
             builder.RegisterAssetsDictionaryClients(myNoSqlClient);
             builder
                 .RegisterType<ClientContextManager>()

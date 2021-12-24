@@ -13,6 +13,7 @@ using Service.ClientWallets.Grpc.Models;
 using Service.FeeShareEngine.Domain.Models;
 using Service.FeeShareEngine.Domain.Models.Models;
 using Service.FeeShareEngine.Postgres;
+using Service.IndexPrices.Client;
 
 namespace Service.FeeShareEngine.Writer.Services
 {
@@ -25,14 +26,17 @@ namespace Service.FeeShareEngine.Writer.Services
         private readonly IServiceBusPublisher<FeePaymentEntity> _feePaymentPublisher;
         private DateTime _paidPeriodDate;
         private PeriodTypes _periodType;
+        private readonly IIndexPricesClient _indexPrices;
+
         public FeePaymentWriter(
             ILogger<FeePaymentWriter> logger, 
-            DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder, SharesPaymentService sharesPaymentService, IServiceBusPublisher<FeePaymentEntity> feePaymentPublisher)
+            DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder, SharesPaymentService sharesPaymentService, IServiceBusPublisher<FeePaymentEntity> feePaymentPublisher, IIndexPricesClient indexPrices)
         {
             _logger = logger;
             _dbContextOptionsBuilder = dbContextOptionsBuilder;
             _sharesPaymentService = sharesPaymentService;
             _feePaymentPublisher = feePaymentPublisher;
+            _indexPrices = indexPrices;
             _timer = new MyTaskTimer(nameof(FeePaymentWriter), TimeSpan.FromMinutes(1), logger, DoTimer);
         }
         
@@ -94,6 +98,7 @@ namespace Service.FeeShareEngine.Writer.Services
 
                 foreach (var payment in payments)
                 {
+                    payment.AssetIndexPrice = _indexPrices.GetIndexPriceByAssetAsync(payment.AssetId).UsdPrice;
                     await _sharesPaymentService.PayFeeToReferrers(payment);
                 }
 
