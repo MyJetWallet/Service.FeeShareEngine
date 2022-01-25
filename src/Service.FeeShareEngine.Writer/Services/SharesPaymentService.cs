@@ -78,7 +78,7 @@ namespace Service.FeeShareEngine.Writer.Services
                     return;
                 }
 
-                var amount = (double)Math.Round(entity.Amount, asset.Accuracy, MidpointRounding.ToZero);
+                var amount = Math.Round(entity.Amount, asset.Accuracy, MidpointRounding.ToZero);
 
                 if (amount <= 0)
                 {
@@ -165,7 +165,7 @@ namespace Service.FeeShareEngine.Writer.Services
                     ClientId = referrer.ClientId
                 })).Wallets.First();
 
-                var amount = (double)Math.Round(payment.Amount, asset.Accuracy, MidpointRounding.ToZero);
+                var amount = Math.Round(payment.Amount, asset.Accuracy, MidpointRounding.ToZero);
 
                 if (amount <= 0)
                 {
@@ -180,7 +180,7 @@ namespace Service.FeeShareEngine.Writer.Services
                     ClientId = _settingsHelper.SettingsModel.FeeShareEngineClientId,
                     FromWalletId = _settingsHelper.SettingsModel.FeeShareEngineWalletId,
                     ToWalletId = walletId.WalletId,
-                    Amount = (double)Math.Round(payment.Amount, asset.Accuracy, MidpointRounding.ToZero),
+                    Amount = Math.Round(payment.Amount, asset.Accuracy, MidpointRounding.ToZero),
                     AssetSymbol = payment.AssetId,
                     Comment = "FeeShares payment to referrer",
                     BrokerId = referrer.BrokerId,
