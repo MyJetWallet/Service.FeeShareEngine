@@ -58,13 +58,13 @@ namespace Service.FeeShareEngine.Writer.Services
                     TimeStamp = DateTime.UtcNow,
                     OperationId = swap.MessageId,
                     FeeTransferOperationId = swap.MessageId + "|FeeTransferToService",
-                    FeeAmount = swap.DifferenceVolumeAbs,
-                    FeeAsset = swap.DifferenceAsset,
+                    FeeAmount = swap.FeeAmount,
+                    FeeAsset = swap.FeeAsset,
                     FeeShareAmountInFeeAsset = feeShareAmountInNative,
                     Status = PaymentStatus.New,
                     FeeShareAsset = clientContext.FeeShareGroup.AssetId,
                     FeeToTargetConversionRate = feeShareInTarget/feeShareAmountInNative,
-                    FeeAssetIndexPrice = _indexPrices.GetIndexPriceByAssetAsync(swap.DifferenceAsset).UsdPrice,
+                    FeeAssetIndexPrice = _indexPrices.GetIndexPriceByAssetAsync(swap.FeeAsset).UsdPrice,
                     TargetAssetIndexPrice = _indexPrices.GetIndexPriceByAssetAsync(clientContext.FeeShareGroup.AssetId).UsdPrice
                 }; 
                 feeShares.Add(feeShare);
