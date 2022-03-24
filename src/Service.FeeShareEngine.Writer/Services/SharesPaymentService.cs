@@ -48,9 +48,9 @@ namespace Service.FeeShareEngine.Writer.Services
 
         public (decimal feeShareInNative, decimal feeShareInTarget) CalculateFeeShare(SwapMessage swap, FeeShareGroup feeShareGroup)
         {
-            var conversionRate = _convertPricesClient.GetConvertIndexPriceByPairAsync(swap.DifferenceAsset, feeShareGroup.AssetId);
+            var conversionRate = _convertPricesClient.GetConvertIndexPriceByPairAsync(swap.FeeAsset, feeShareGroup.AssetId);
             var sharePercent = feeShareGroup.FeePercent;
-            var feeShareInNative = swap.DifferenceVolumeAbs * (sharePercent / 100);
+            var feeShareInNative = swap.FeeAmount * (sharePercent / 100);
             var feeShareInTarget = conversionRate.Price * feeShareInNative;
             return (feeShareInNative, feeShareInTarget);
         }
@@ -180,7 +180,7 @@ namespace Service.FeeShareEngine.Writer.Services
                     ClientId = _settingsHelper.SettingsModel.FeeShareEngineClientId,
                     FromWalletId = _settingsHelper.SettingsModel.FeeShareEngineWalletId,
                     ToWalletId = walletId.WalletId,
-                    Amount = Math.Round(payment.Amount, asset.Accuracy, MidpointRounding.ToZero),
+                    Amount = amount,
                     AssetSymbol = payment.AssetId,
                     Comment = "FeeShares payment to referrer",
                     BrokerId = referrer.BrokerId,
