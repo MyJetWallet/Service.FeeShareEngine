@@ -47,6 +47,9 @@ namespace Service.FeeShareEngine.Writer.Services
                 var clientContext = await _contextManager.GetClientContext(swap.WalletId1);
                 if(string.IsNullOrEmpty(clientContext?.ReferrerClientId))
                     continue;
+                
+                if(swap.FeeAmount == 0)
+                    continue;
 
                 var (feeShareAmountInNative, feeShareInTarget) = _paymentService.CalculateFeeShare(swap, clientContext.FeeShareGroup);
                 
