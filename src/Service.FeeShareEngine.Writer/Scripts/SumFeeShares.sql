@@ -11,6 +11,6 @@ BEGIN
         SELECT '${PeriodFrom}', '${PeriodTo}', SUM("Amount"), current_timestamp, 0, "AssetId"
         FROM feeshares.fee_payments
         WHERE feeshares.fee_payments."PeriodFrom" = '${PeriodFrom}' AND "PeriodTo" = '${PeriodTo}'
-        GROUP BY "ReferrerClientId", "AssetId"
+        GROUP BY "AssetId"
     ON CONFLICT ("PeriodFrom", "PeriodTo", "AssetId") DO UPDATE SET ("Amount", "CalculationTimestamp") = (excluded."Amount", excluded."CalculationTimestamp");
 END $$;
