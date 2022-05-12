@@ -24,7 +24,7 @@ namespace Service.FeeShareEngine.Writer.Modules
             builder.RegisterMyServiceBusPublisher<FeePaymentEntity>(serviceBusClient, FeePaymentEntity.TopicName, true);
             builder.RegisterMyServiceBusSubscriberSingle<ReferralMapChangeMessage>(serviceBusClient, ReferralMapChangeMessage.TopicName, "FeeShareEngine-Writer", TopicQueueType.PermanentWithSingleConnection);
 
-            var myNoSqlClient = builder.CreateNoSqlClient(Program.ReloadedSettings(t => t.MyNoSqlReaderHostPort));
+            var myNoSqlClient = builder.CreateNoSqlClient(Program.Settings.MyNoSqlReaderHostPort, Program.LogFactory);
             builder.RegisterLiquidityConverterManagerClient(Program.Settings.LiquidityConverterGrpcServiceUrl);
             builder.RegisterSpotChangeBalanceGatewayClient(Program.Settings.ChangeBalanceGatewayGrpcServiceUrl);
             builder.RegisterClientWalletsClientsWithoutCache(Program.Settings.ClientWalletsGrpcServiceUrl);
